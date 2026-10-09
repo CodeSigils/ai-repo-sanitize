@@ -41,6 +41,21 @@ jobs:
           enable-cache: true
       - name: Sync locked dev environment
         run: uv sync --locked
+      - name: Commit-message policy on pushes
+        if: github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000' && github.ref_type == 'branch'
+        run: uv run python scripts/check-commit-messages.py --base "${{ github.event.before }}" --head "${{ github.sha }}"
+      - name: Commit-message policy on pull requests
+        if: github.event_name == 'pull_request'
+        env:
+          ACTOR: ${{ github.actor }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if [ "$ACTOR" = "dependabot[bot]" ]; then
+            uv run python scripts/check-commit-messages.py --base "$BASE" --head "$HEAD" --allow-bodyless
+          else
+            uv run python scripts/check-commit-messages.py --base "$BASE" --head "$HEAD"
+          fi
       - name: Shellcheck hooks
         run: shellcheck .githooks/pre-commit .githooks/commit-msg
       - name: Lint

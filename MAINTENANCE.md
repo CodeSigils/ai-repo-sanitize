@@ -44,10 +44,13 @@ clone you commit from:
 git config core.hooksPath .githooks
 ```
 
-- `.githooks/pre-commit` runs `ruff check .`, `ty check`, and the docs validator.
-- `.githooks/commit-msg` rejects commit messages that carry AI-attribution
-  trailers (see the canonical pattern in `src/ai_repo_sanitize/patterns.py`).
-  `--no-verify` is reserved for emergencies and never for routine work.
+- `.githooks/pre-commit` runs `ruff check .`, `ty check`, the docs validator,
+  and the doc-claims check.
+- `.githooks/commit-msg` runs `scripts/check-commit-messages.py`, which
+  rejects AI-attribution trailers using the canonical pattern and requires
+  non-empty `what:` and `why:` paragraphs for implementation/configuration
+  commit types. CI checks the same policy across each push or PR range; do not
+  use `--no-verify` as a workaround.
 
 ### Dependency refresh
 
@@ -63,7 +66,21 @@ Commit `pyproject.toml` and `uv.lock` together.
 
 Dependabot proposes grouped weekly updates for the uv toolchain and GitHub
 Actions per `.github/dependabot.yml`; merge its PRs only after the canonical
-gate passes.
+gate passes. The two-PR cap bounds review load, but it is not a freshness
+signal: an open PR can prevent newer updates without failing CI.
+
+### Pull-request hygiene
+
+[.github/workflows/pr-hygiene.yml](.github/workflows/pr-hygiene.yml) runs
+daily at 09:29 UTC and on manual dispatch. It has only `contents: read` and
+`pull-requests: read` permission. The workflow queries open PR metadata,
+writes a job summary, and fails when a Dependabot PR has been open for seven
+days or when a PR has 14-day review debt (no review, no update, or a non-default
+base branch).
+
+The workflow never comments, labels, closes, approves, or merges a PR. Treat a
+failure as a maintainer decision: merge, rebase, or close the listed PR. Native
+auto-merge remains disabled; a green bot PR is evidence, not approval.
 
 ### Weekly URL re-check
 
@@ -84,6 +101,8 @@ migrates to Ubuntu 26 on 2026-10-19; the `${{ vars.RUNNER_X86_64 || 'ubuntu-late
 
 - **quality** — `uv sync --locked`, shellcheck the hooks, then the
   canonical gate: `ruff check .`, `ty check`, `pytest`, `validate-docs.py`;
+  it checks each newly introduced commit for attribution trailers and required
+  rationale labels (Dependabot is exempt from labels only);
   a datadef-style doc-coverage step warns (never fails) when a code change
   ships without a matching docs change; a codocia-class claims check fails
   when a doc references a backticked repo path that does not exist;
@@ -96,6 +115,9 @@ migrates to Ubuntu 26 on 2026-10-19; the `${{ vars.RUNNER_X86_64 || 'ubuntu-late
 - **python-compat** — the same tests run with the stdlib runner across Python
   3.10 through 3.14, matching `requires-python`. The end-to-end rewrite test
   skips here (no uv/venv, so no git-filter-repo); everything else runs.
+- **pr hygiene** — a five-minute scheduled/manual, read-only job that checks
+  open PR review debt without re-running the full validation matrix or adding
+  write-capable bot automation.
 
 The docs mirror the workflow, and `scripts/validate-docs.py` enforces the
 agreement: if ci.yml stops running a canonical command verbatim, the gate

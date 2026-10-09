@@ -96,6 +96,28 @@ Completed for v0.2 (2026-10-09):
 | Codocia-class `covers` coverage | Markdown docs declare which code symbols they cover; snapshot hashes of covered files; `check --base main` reports changed-code-without-docs-coverage | The checker runs in CI on the weekly schedule next to `verify-urls.py`, and its policy file is agent-readable (codocia.md pattern) |
 | Staleguard-class standing instruction | AGENTS.md gains: "after editing code or docs, run the canonical gate and fix any drift" | Already half-there via AGENTS.md's validation gate; extension makes the re-verification of `RESEARCH`/`ROADMAP`/`ANTIDRIFT` mandatory |
 
+## v0.4 — PR hygiene (current)
+
+Completed for v0.4 (2026-10-09):
+
+- **Read-only PR-hygiene gate** — `scripts/check-pr-hygiene.py` and
+  `.github/workflows/pr-hygiene.yml` query only open PR metadata on a daily,
+  off-hour schedule and on manual dispatch. The workflow has only
+  `contents: read` and `pull-requests: read`, writes a job summary, and fails
+  when a Dependabot PR reaches seven days or a PR has 14-day review debt (no
+  review, no update, or a stacked base). It never comments, labels, closes,
+  approves, or merges. Unit tests cover the findings; CI validates the script
+  with the rest of the suite.
+- **Commit-message policy gate** — `scripts/check-commit-messages.py` is run
+  by the local `commit-msg` hook and across each introduced push/PR commit
+  range in the `quality` CI job. It rejects AI-attribution trailers and
+  requires a non-empty `what:` / `why:` rationale for implementation,
+  configuration, and workflow prefixes. Dependabot may omit labels but is
+  never exempt from attribution detection.
+
+Anti-drift check: the checker lives under `scripts/`, its behavior is locked in
+`tests/test_check_pr_hygiene.py`, and the workflow is actionlint-validated.
+
 ## Next (queued 2026-10-09)
 
 - **Behavior-completeness contract** — replace the aspirational claim that every
@@ -114,6 +136,12 @@ Completed for v0.2 (2026-10-09):
   available; a sole maintainer should retain PR-only auditability without a
   self-review deadlock. Confirm the owner, reviewer, and bypass policy before
   changing that external configuration.
+- **PR-hygiene expansion review** — after 30 days of scheduled evidence,
+  decide whether stale remote branches add actionable signal. Do not add a
+  write scope, comments, or auto-merge unless the recorded failures show that
+  the current read-only report is insufficient. The initial pattern combines
+  `repo-health-scan`'s seven-day failure signal, `python-project-workflow`'s
+  14-day PR debt criteria, and `zensical-skill`'s stale-state/roadmap gates.
 - **Real-world verification session** — two throwaway-repository test legs,
   planned for the next working day:
   1. contributor recognition — run `check` over commits whose co-authors come

@@ -1,17 +1,7 @@
 #!/bin/sh
-# Reject AI-attribution trailers in commit messages.
-# POSIX grep only (-E -i are POSIX options; no \b, which BSD grep lacks).
-# Deliberately overridable: commit with --no-verify if you mean it.
+# Enforce commit-message policy before the commit object is created.
 set -e
 
 MSG_FILE="$1"
-PATTERN='co-authored-by:.*(sisyphus|claude|opencode|codex|copilot|cursor|devin)|(ultraworked|generated|assisted) with'
 
-if grep -E -i -- "$PATTERN" "$MSG_FILE"; then
-    echo "error: commit message contains an AI-attribution trailer" >&2
-    echo "hint: remove the Co-authored-by / 'with' branding line" >&2
-    echo "hint: to override intentionally: git commit --no-verify" >&2
-    exit 1
-fi
-
-exit 0
+exec uv run python scripts/check-commit-messages.py --message-file "$MSG_FILE"

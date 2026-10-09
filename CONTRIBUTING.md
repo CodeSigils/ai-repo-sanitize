@@ -89,18 +89,21 @@ describe it in one commit. This is deliberate.
 Follow the repository's commit style:
 
 - Lowercase conventional subjects: `feat:`, `docs:`, `fix:`, `test:`,
-  `chore:`. One line, plus a body only when it adds context.
+  `chore:`. `feat:`, `fix:`, `perf:`, `refactor:`, `build:`, `ci:`, and
+  `chore:` commits require non-empty `what:` and `why:` paragraphs; `docs:`
+  and `test:` commits may omit them when no implementation behavior changes.
 - No AI-attribution trailers (`Co-authored-by: Some Agent <...>`,
-  `Ultraworked with ...` lines). The `.githooks/commit-msg` hook rejects them.
+  `Ultraworked with ...` lines). The `.githooks/commit-msg` hook and CI reject
+  them. Dependabot's generated commit format is exempt from body labels only.
 - Install the hooks once per clone:
 
 ```bash
 git config core.hooksPath .githooks
 ```
 
-The pre-commit hook runs ruff and the docs validator on every commit; the
-commit-msg hook rejects attribution trailers. `--no-verify` bypasses both but
-should be reserved for emergencies.
+The pre-commit hook runs ruff, ty, the docs validator, and doc-claims check.
+The commit-msg hook rejects attribution trailers and missing required body
+labels. CI rechecks new commits, so do not use `--no-verify` as a workaround.
 
 ## Reviewing
 

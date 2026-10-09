@@ -174,6 +174,55 @@ absent); awesome-agent-trust has no hooks at all.
    canonical 4-command gate govern every Dependabot PR. Rationale: the org
    research note automation-bots-and-workflows.md (repo-architecture-skill)
    plus the empirical GITHUB_TOKEN/permissions model recorded in §2.
+9. **PR freshness and merge automation need separate controls** — Dependabot
+   stops rebasing an unmerged PR after 30 days, so a passing PR can silently
+   become stale. The optimal fit here is a separate daily, read-only
+   `pr-hygiene.yml` workflow, offset from the hour and manually dispatchable:
+   it queries only open PR metadata, writes a job summary, and fails at seven
+   days for Dependabot PRs and 14 days for unreviewed, stale, or stacked PRs.
+   A dedicated job bounds detection to about one day after the threshold
+   without running the full validation matrix daily. It needs only `contents: read` and
+   `pull-requests: read`; comments, labels, closure, approval, and merge are
+   deliberately out of scope. Each finding must be explicitly merged,
+   rebased, or closed. Keep autonomous auto-merge disabled:
+   Dependabot-triggered workflows receive a read-only token by default, and a
+   write-capable GitHub App or PAT would be a separate security decision.
+   Reconsider GitHub native auto-merge only after the branch ruleset is
+   established, a maintainer explicitly opts in to a patch-only PR, and a
+   documented recurring failure shows the benefit outweighs the added
+   authority. Minor, major, security-sensitive, and non-Dependabot PRs remain
+   manual review work.
+
+10. **Agent Git hygiene is an execution gate, not a reminder** — before a
+    write, the agent records the branch, upstream, and worktree state. Before
+    staging, it separates unrelated changes; before a push or a user-requested
+    merge, it refreshes the remote state and inspects the PR's review,
+    mergeability, and required-check status. This catches stale bases and
+    accidental mixed commits before they become a remote recovery problem.
+
+11. **Local comparator evidence (2026-10-09)** — three recent repositories
+    document the same recurring class of failure. `repo-health-scan` found two
+    mergeable Dependabot PRs left for 12 days and now runs a seven-day
+    dependency-backlog detector that comments once and fails its scheduled
+    run, while retaining disabled auto-merge. `python-project-workflow` treats
+    PRs without a review after three days, PRs untouched for 14 days, stacked
+    PRs, and stale branches as hygiene errors. `zensical-skill` requires a
+    stale-state preflight and a roadmap after-action gate. Decision: adopt the
+    common read-only preflight and a dedicated daily scheduled report first;
+    defer comments, write permissions, and auto-merge until a later policy
+    review proves they are necessary.
+
+12. **Commit-message policy needs a server-visible check** — a local
+    `commit-msg` hook is valuable fast feedback but can be skipped, so it
+    cannot be the sole control. `scripts/check-commit-messages.py` now uses
+    the runtime's canonical attribution matcher for both the local hook and
+    CI. CI validates commits introduced by the exact push/PR range, requires
+    non-empty `what:` and `why:` paragraphs for implementation and workflow
+    prefixes, and permits Dependabot's generated format to omit those labels
+    without exempting it from the attribution rule. This detects bypasses
+    before a PR merge. It cannot prevent an authorized direct push; moving to
+    PR-only rules remains the separate maintainer-governance choice recorded
+    in ROADMAP.md.
 
 ## 6. Reference URLs
 
@@ -212,6 +261,9 @@ absent); awesome-agent-trust has no hooks at all.
 - GitHub Dependabot grouped version updates (PR optimization): <https://docs.github.com/en/code-security/tutorials/secure-your-dependencies/optimizing-pr-creation-version-updates>
 - Dependabot configuration options reference: <https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference>
 - Dependabot for GitHub Actions: <https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-on-actions>
+- Managing aging Dependabot pull requests: <https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/manage-your-dependency-security/manage-dependabot-prs>
+- Native pull-request auto-merge: <https://docs.github.com/en/pull-requests/how-tos/merge-and-close-pull-requests/automatically-merging-a-pull-request>
+- Dependabot automation and token constraints: <https://docs.github.com/en/code-security/tutorials/secure-your-dependencies/automate-dependabot-with-actions>
 
 ## 7. Future research (queued 2026-10-09)
 

@@ -92,9 +92,12 @@ opt-in GitHub sidebar-cache refresh, documented in [RESEARCH.md](RESEARCH.md)).
 git config core.hooksPath .githooks
 ```
 
-- `pre-commit` runs the fast gates (ruff, ty, docs validator).
-- `commit-msg` rejects AI-attribution trailers at commit time. Use
-  `--no-verify` only in a documented emergency.
+- `pre-commit` runs the fast gates (ruff, ty, docs validator, doc-claims
+  check).
+- `commit-msg` rejects AI-attribution trailers and requires non-empty `what:`
+  and `why:` paragraphs for implementation, configuration, and workflow
+  commits. CI rechecks every newly introduced commit, so a local hook is not
+  the only control.
 
 ## Validation
 
