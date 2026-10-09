@@ -7,7 +7,8 @@ that repo; logic rewritten here). Enforces a small, verifiable contract:
 * Every canonical validation command is listed in README.md and CONTRIBUTING.md.
 * Every required documentation file exists (docs inventory never silently
   shrinks).
-* Every internal relative link in the markdown docs resolves to a real file.
+* Every internal relative link in the markdown docs resolves to a real file
+  (title/angle-bracket destinations supported; fenced code blocks are skipped).
 * Every required doc carries a current `Last reviewed: YYYY-MM-DD` header
   (missing, unparseable, future, or older than the 90-day window fails).
 * The CI workflow and the pre-commit hook actually run the canonical commands
@@ -46,7 +47,7 @@ VALIDATION_COMMANDS: tuple[str, ...] = (
     "uv run python scripts/validate-docs.py",
 )
 
-_LINK_RE = re.compile(r"\]\(([^)]+)\)")
+_LINK_RE = re.compile(r"\]\(<?([^)>\s]+)>?(?:\s+[^)]*)?\)")
 _REVIEW_RE = re.compile(r"Last reviewed:\s*(\d{4}-\d{2}-\d{2})")
 _REVIEW_WINDOW_DAYS = 90
 
@@ -100,13 +101,19 @@ def findings(
         if not path.is_file():
             continue
         text = path.read_text(encoding="utf-8")
-        for target in _LINK_RE.findall(text):
-            href = target.split(" ", 1)[0]
-            if href.startswith(("http://", "https://", "#", "mailto:")):
+        in_fence = False
+        for line in text.splitlines():
+            if line.strip().startswith("```"):
+                in_fence = not in_fence
                 continue
-            resolved = (path.parent / href).resolve()
-            if not resolved.exists():
-                problems.append(f"{doc}: internal link target does not exist: {href}")
+            if in_fence:
+                continue
+            for target in _LINK_RE.findall(line):
+                if target.startswith(("http://", "https://", "#", "mailto:")):
+                    continue
+                resolved = (path.parent / target).resolve()
+                if not resolved.exists():
+                    problems.append(f"{doc}: internal link target does not exist: {target}")
         match = _REVIEW_RE.search(text)
         if match is None:
             problems.append(f"{doc}: missing 'Last reviewed: YYYY-MM-DD' header")

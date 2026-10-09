@@ -56,6 +56,11 @@ Completed for v0.2 (2026-10-09):
   and ANTIDRIFT already had them). `scripts/validate-docs.py` hard-fails on missing,
   unparseable, future, or >90-day-old reviews; `--review-window`/`--today`/`--root` flags
   make it testable. ANTIDRIFT.md §6 rewritten from roadmap to enforced.
+- **Link extraction hardened** — `validate-docs.py` uses a destination-first
+  pattern (titled and angle-bracket destinations parse cleanly) and skips
+  fenced code blocks, so docs carrying such link forms or code samples cannot
+  false-fail the internal-link check. Balanced-parens destinations remain a
+  documented limitation (RESEARCH.md §2).
 
 | Item | Goal | Anti-drift check |
 | --- | --- | --- |

@@ -63,7 +63,7 @@ this file when `patterns.py`, `cli.py`, or the canonical validation commands cha
 | sourcegraph.com/blog/documentation-as-code | docs-as-code = git + markdown + review + CI; the code-changer is the best doc-updater; agents read docs as input | one-change-one-commit rule; CI-checkable claims |
 | lycheeverse/lychee | fast Rust link checker; schedule-friendly; anchor fragment support | rejected as binary dep — stdlib `verify-urls.py` suffices |
 | cosmocoder/doc-freshness-checker | validate doc references (paths, URLs, versions, symbols) in CI | Layer-1 contract; semantic layers rejected as overkill |
-| datadef.io docs-checks-in-ci | 4 checks: links (on a **schedule**), prose (Vale), freshness (`last_reviewed` window), diff-coverage warn-not-fail | schedule-based verify-urls; `last_reviewed` gate queued for v0.2; warn-not-fail diff rule |
+| datadef.io docs-checks-in-ci | 4 checks: links (on a **schedule**), prose (Vale), freshness (`last_reviewed` window), diff-coverage warn-not-fail | schedule-based verify-urls; `last_reviewed` gate shipped 2026-10-09 (v0.2; 90-day window in validate-docs); warn-not-fail diff rule pending |
 | Arthur920/Staleguard | deterministic Layer-1 drift checks; agent guardrail: run check after edits | our validate-docs.py + AGENTS.md gate mirror this |
 | andimrob/docrot | `last_reviewed` frontmatter + interval / until_date / **code_changes** strategies | code-changes rule adopted now; interval gate queued for v0.2 |
 | codocia (docs.rs) | docs drift checker FOR agents: `covers` patterns + snapshot hashes; "docs are source of truth" | patterns/checker idea adopted conceptually; tool itself overkill now |

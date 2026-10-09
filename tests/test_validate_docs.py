@@ -157,6 +157,23 @@ class FindingsTest(ValidatorFixture):
     def test_usage_error_returns_one(self) -> None:
         self.assertEqual(self.validate_docs.main(["--bogus"]), 1)
 
+    def test_title_and_angle_links_resolve(self) -> None:
+        self._write_docs()
+        readme = self.root / "README.md"
+        with readme.open("a", encoding="utf-8") as handle:
+            handle.write('[cfg](CONTRIBUTING.md "contributing guide")\n')
+            handle.write("[sec](<SECURITY.md>)\n")
+        self.assertEqual(self.run_findings(today=date.today()), [])
+
+    def test_fenced_fake_link_not_flagged(self) -> None:
+        self._write_docs()
+        readme = self.root / "README.md"
+        with readme.open("a", encoding="utf-8") as handle:
+            handle.write("```text\n")
+            handle.write("[x](fake/nonexistent-in-fence.md)\n")
+            handle.write("```\n")
+        self.assertEqual(self.run_findings(today=date.today()), [])
+
 
 if __name__ == "__main__":
     unittest.main()
