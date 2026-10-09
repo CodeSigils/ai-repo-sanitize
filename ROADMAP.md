@@ -114,6 +114,10 @@ Completed for v0.4 (2026-10-09):
   requires a non-empty `what:` / `why:` rationale for implementation,
   configuration, and workflow prefixes. Dependabot may omit labels but is
   never exempt from attribution detection.
+- **Live pre-merge readiness gate** — `scripts/check-pr-readiness.py` and the
+  manual `pr readiness` workflow inspect one PR immediately before a requested
+  merge. They are read-only and fail for stale merge conditions; approval is
+  optional until the maintainer branch-policy decision is made.
 
 Anti-drift check: the checker lives under `scripts/`, its behavior is locked in
 `tests/test_check_pr_hygiene.py`, and the workflow is actionlint-validated.

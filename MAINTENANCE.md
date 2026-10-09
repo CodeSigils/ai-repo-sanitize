@@ -82,6 +82,20 @@ The workflow never comments, labels, closes, approves, or merges a PR. Treat a
 failure as a maintainer decision: merge, rebase, or close the listed PR. Native
 auto-merge remains disabled; a green bot PR is evidence, not approval.
 
+### Pre-merge readiness
+
+Before merging a requested PR, run the live, read-only readiness check:
+
+```bash
+uv run python scripts/check-pr-readiness.py 123
+```
+
+It fails for a draft, wrong base, non-clean merge state, missing or non-passing
+checks, and—only when `--require-approval` is supplied—a missing approved
+review. The same check is available through the manual `pr readiness` Actions
+workflow. Neither path merges or modifies the PR; a maintainer still makes the
+final merge decision.
+
 ### Weekly URL re-check
 
 ci.yml runs `scripts/verify-urls.py` on the weekly schedule and on manual
@@ -118,6 +132,8 @@ migrates to Ubuntu 26 on 2026-10-19; the `${{ vars.RUNNER_X86_64 || 'ubuntu-late
 - **pr hygiene** — a five-minute scheduled/manual, read-only job that checks
   open PR review debt without re-running the full validation matrix or adding
   write-capable bot automation.
+- **pr readiness** — a manually dispatched, read-only pre-merge check for one
+  PR's current base, mergeability, checks, and optional approval requirement.
 
 The docs mirror the workflow, and `scripts/validate-docs.py` enforces the
 agreement: if ci.yml stops running a canonical command verbatim, the gate

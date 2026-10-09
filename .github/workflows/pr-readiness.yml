@@ -1,0 +1,41 @@
+name: pr readiness
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr-number:
+        description: Pull-request number to inspect
+        required: true
+        type: string
+      require-approval:
+        description: Fail unless GitHub reports an approved review
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  readiness:
+    runs-on: ${{ vars.RUNNER_X86_64 || 'ubuntu-latest' }}
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      - name: Verify pull-request readiness
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ inputs.pr-number }}
+          REQUIRE_APPROVAL: ${{ inputs.require-approval }}
+        run: |
+          if [ "$REQUIRE_APPROVAL" = "true" ]; then
+            python3 scripts/check-pr-readiness.py "$PR_NUMBER" --require-approval
+          else
+            python3 scripts/check-pr-readiness.py "$PR_NUMBER"
+          fi

@@ -224,6 +224,16 @@ absent); awesome-agent-trust has no hooks at all.
     PR-only rules remains the separate maintainer-governance choice recorded
     in ROADMAP.md.
 
+13. **Freshness checks and merge checks operate at different times** — a daily
+    hygiene report identifies neglected PRs, but it cannot establish that a PR
+    is still mergeable when a maintainer acts. The companion
+    `check-pr-readiness.py` checks one PR's live default-base target, draft
+    state, merge-state status, status-check rollup, and optional approved
+    review immediately before a requested merge. It is exposed as a manual,
+    read-only workflow so agents can perform the chore consistently without
+    receiving permission to merge. This preserves the evidence-before-action
+    workflow while branch protection remains a maintainer policy decision.
+
 ## 6. Reference URLs
 
 - man page: <https://manpages.debian.org/testing/git-filter-repo/git-filter-repo.1.en.html>

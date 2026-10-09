@@ -66,7 +66,10 @@ Interactive version with recommendations: `CONTRIBUTING.md`.
   gate.
 - Before pushing or merging a PR at the user's request, refresh remote state,
   inspect the PR's mergeability, review decision, and check rollup, and verify
-  that its base is current. Never merge a PR merely because it once passed CI.
+  that its base is current. Run `uv run python scripts/check-pr-readiness.py
+  <number>` immediately before merging; add `--require-approval` when the
+  current maintainer policy requires one. Never merge a PR merely because it
+  once passed CI.
 - During dependency work, list open Dependabot PRs and flag any that are
   nearing 30 days without a merge, rebase, or close decision. Native
   auto-merge is deferred pending the roadmap's PR-hygiene and branch-ruleset
