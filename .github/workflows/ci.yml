@@ -74,4 +74,4 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Stdlib test runner across versions
-        run: python3 -m unittest discover -s tests
+        run: PYTHONPATH=src python3 -m unittest discover -s tests
