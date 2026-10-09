@@ -1,5 +1,7 @@
 # AGENTS.md
 
+> Last reviewed: 2026-10-09
+
 This file is the first stop for any agent (or maintainer) working in this
 repository. It points at the single source of truth for what ships, how to
 validate work, and which guardrails apply.

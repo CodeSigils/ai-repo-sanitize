@@ -1,5 +1,7 @@
 # Maintenance
 
+> Last reviewed: 2026-10-09
+
 Operational guide for maintainers of `ai-repo-sanitize`. For contribution
 workflow see [CONTRIBUTING.md](CONTRIBUTING.md); for security matters see
 [SECURITY.md](SECURITY.md); for the anti-drift strategy see

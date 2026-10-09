@@ -68,13 +68,15 @@ a standing, mechanical rule (docrot's `code_changes` strategy; codocia's `covers
 - CI warns (does not fail) when a change under `src/` or `scripts/` has no matching change under
   `docs/` or root `*.md` files — warnings first; a hard fail invites token edits (datadef).
 
-## 6. Freshness metadata (roadmap, v0.2)
+## 6. Freshness metadata (enforced)
 
-Each drift-sensitive doc carries `Last reviewed: YYYY-MM-DD` (already present in this file). By
-v0.2, `validate-docs.py` will fail when a critical doc's review date is older than 90 days, and
-`CONTRIBUTING.md` will name the owner who must bump it when they touch the area. The pure
-`last_reviewed` interval check is only a proxy, but a *named, dated* review beats an unnamed,
-undated one.
+Every required doc (the `REQUIRED_DOCS` set in `scripts/validate-docs.py`) carries a
+`Last reviewed: YYYY-MM-DD` header. The validator enforces a hard 90-day window: a missing
+header, an unparseable date, a future date, or a review older than the window fails the
+canonical gate (window configurable with `--review-window`; `--root`/`--today` keep tests
+deterministic). The pure interval check is only a proxy, but a *named, dated* review beats an
+unnamed, undated one — keep the header honest by bumping it in the same commit that
+substantively edits the file.
 
 ## 7. Explicit non-goals
 

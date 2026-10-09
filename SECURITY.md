@@ -1,5 +1,7 @@
 # Security Policy
 
+> Last reviewed: 2026-10-09
+
 ## Scope
 
 ai-repo-sanitize manipulates commit history — a high-trust operation. Treat

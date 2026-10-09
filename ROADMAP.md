@@ -24,7 +24,6 @@ In-flight polish for v0.1:
 
 | Item | Goal | Anti-drift check |
 | --- | --- | --- |
-| `tests/test_validate_docs.py` | Test the docs validator itself (check-the-checker; org convention seen in python-project-workflow-skill: `validate-ci.py` + `test-validate-ci.py`) | `scripts/validate-docs.py` stays in the 4-command gate so the validator and its tests cannot drift apart |
 | `CITATION.cff` | Citation metadata; present in 3 of 4 inspected CodeSigils repos | None needed — static file, but keep it listed in `validate-docs.py` required docs if added |
 | `.githooks/pre-push` | Run the canonical gate before push (org uses pre-push in 2 of 4 repos) | Hook lists the same 4 canonical commands, so the substring contract in `validate-docs.py` extends naturally |
 
@@ -40,15 +39,26 @@ Completed for v0.1 (2026-10-09):
   bare remote (offline).
 - **Python floor honored** — the python-compat matrix now tests 3.10 through 3.14, matching
   `requires-python`.
+- **Docs validator tested (check-the-checker)** — `tests/test_validate_docs.py` drives
+  `validate-docs.py` `findings()` over temporary fixtures (missing docs, command drift, broken
+  links, freshness states) via `--root`/`--today`/`--review-window`. Org convention borrowed
+  from python-project-workflow-skill (`validate-ci.py` + `test-validate-ci.py`).
 
 Anti-drift check for all three: they live in `tests/`, which the canonical 4-command gate runs
 on every push — they cannot rot silently.
 
 ## v0.2 — freshness and coverage gates
 
+Completed for v0.2 (2026-10-09):
+
+- **Freshness gate** — every required doc now carries `Last reviewed: YYYY-MM-DD`
+  (headers added to README/CONTRIBUTING/MAINTENANCE/SECURITY/AGENTS.md; RESEARCH, ROADMAP
+  and ANTIDRIFT already had them). `scripts/validate-docs.py` hard-fails on missing,
+  unparseable, future, or >90-day-old reviews; `--review-window`/`--today`/`--root` flags
+  make it testable. ANTIDRIFT.md §6 rewritten from roadmap to enforced.
+
 | Item | Goal | Anti-drift check |
 | --- | --- | --- |
-| Freshness gate in `validate-docs.py` | `Last reviewed: YYYY-MM-DD` + named owner on drift-sensitive docs; hard fail when older than 90 days (docrot-style, datadef §3) | The gate itself lives in the 4-command contract; adding it makes "Last reviewed" checkable instead of advisory |
 | Git-diff doc-coverage warning | CI step warns (does not fail) when a `src/` or `.githooks/` change ships without a matching docs change (datadef §4 Danger rule: "start as warnings; hard fail invites token edits") | Warning text points at `ANTIDRIFT.md` § code-changes rule so the fix is mechanical |
 | Optional: `evals/` + `schemas/` dirs | Org skill repos carry evals; only if we add behavior-parity evals for rewrite | Kept optional; if added, mirror the org's `validate-evals.py`-style gate |
 

@@ -1,5 +1,7 @@
 # Contributing
 
+> Last reviewed: 2026-10-09
+
 ai-repo-sanitize is a focused tool: it detects and removes AI-attribution
 trailers from git history, exposing every step so a maintainer can audit the
 rewrite before anything is pushed. Keep contributions small, tested, and
