@@ -61,6 +61,22 @@ this file when `patterns.py`, `cli.py`, or the canonical validation commands cha
   producing a false `404` failure (first observed 2026-10-09). Fix: strip the
   backtick with the punctuation set — `url.rstrip(".,;:!?`")`. No documented
   URL contains a real trailing backtick, so the strip is safe.
+- **GitHub Actions operational gotchas (2026-10-09)** — three things that
+  bit this repo's workflows and are now encoded into them:
+  - `gh` in a workflow ignores the auto-provisioned token unless passed
+    explicitly: `env: GH_TOKEN: ${{ github.token }}`. The release job failed
+    with exit code 4 ("To use GitHub CLI in a GitHub Actions workflow, set
+    the GH_TOKEN environment variable") until the env line was added.
+  - Pinned action SHAs must be verified against the action's release tag via
+    the refs/tags API: a silent typo (setup-python `...c45a2b` vs real
+    `...c90a2b`) and a nonexistent setup-uv SHA both died at "Set up job"
+    before any step ran (run 37911302858). Pin by full-length commit SHA and
+    re-verify on upgrades.
+  - Tag pushes re-run the full ci.yml in practice even when the changed
+    files would be filtered out by `paths`: the v0.1.0 annotated tag push
+    fired the whole validate workflow (run 37927693277, green). We
+    documented the opposite in MAINTENANCE.md first, then corrected it —
+    trust the observation, not the assumption.
 
 ## 3. Anti-drift literature (2026)
 
@@ -135,3 +151,6 @@ convention guards at hook level.
 - action-validator "YAML references aren't supported": <https://github.com/mpalmer/action-validator/issues/70>
 - GitHub docs on anchors/aliases (reusing workflow configurations): <https://docs.github.com/en/actions/reference/workflows-and-actions/reusing-workflow-configurations#yaml-anchors-and-aliases>
 - frenck.dev analysis of the partial anchor support (no merge keys, 2025-10): <https://frenck.dev/github-actions-yaml-anchors-aliases-merge-keys/>
+- GitHub CLI environment variables (GH_TOKEN): <https://cli.github.com/manual/gh_help_environment>
+- GitHub security hardening for GitHub Actions (pin third-party actions by full-length SHA): <https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions>
+- GitHub Actions events that trigger workflows (push): <https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows#push>
