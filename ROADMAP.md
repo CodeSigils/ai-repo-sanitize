@@ -28,6 +28,22 @@ In-flight polish for v0.1:
 | `CITATION.cff` | Citation metadata; present in 3 of 4 inspected CodeSigils repos | None needed — static file, but keep it listed in `validate-docs.py` required docs if added |
 | `.githooks/pre-push` | Run the canonical gate before push (org uses pre-push in 2 of 4 repos) | Hook lists the same 4 canonical commands, so the substring contract in `validate-docs.py` extends naturally |
 
+Completed for v0.1 (2026-10-09):
+
+- **End-to-end rewrite test in CI** — `tests/test_integration.py` drives the full guarded arc:
+  seeded trailer commits → `check` → `preview` → `rewrite` with mirror backup → push to a local
+  bare remote → clone back and assert both safety invariants (same tree, no attribution) plus
+  human co-author survival. Skips where git-filter-repo is absent (the stdlib matrix job).
+- **Platform/publish unit tests** — `tests/test_platform.py` locks `split_remote`
+  (https/ssh/scp forms; local paths → `None`, the bug class the audit caught), `resolve_token`,
+  `get_json` retry-vs-HTTP-error semantics (mocked `urlopen`), and `publish` against a local
+  bare remote (offline).
+- **Python floor honored** — the python-compat matrix now tests 3.10 through 3.14, matching
+  `requires-python`.
+
+Anti-drift check for all three: they live in `tests/`, which the canonical 4-command gate runs
+on every push — they cannot rot silently.
+
 ## v0.2 — freshness and coverage gates
 
 | Item | Goal | Anti-drift check |

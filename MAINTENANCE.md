@@ -83,7 +83,8 @@ request, and re-checks external URLs on a weekly schedule:
   RESEARCH.md §2), so a pin update means updating every occurrence and
   keeping the `# vX.Y.Z` comments in lock-step.
 - **python-compat** — the same tests run with the stdlib runner across Python
-  3.12, 3.13, and 3.14.
+  3.10 through 3.14, matching `requires-python`. The end-to-end rewrite test
+  skips here (no uv/venv, so no git-filter-repo); everything else runs.
 
 The docs mirror the workflow, and `scripts/validate-docs.py` enforces the
 agreement: if ci.yml stops running a canonical command verbatim, the gate

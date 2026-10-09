@@ -50,6 +50,11 @@ this file when `patterns.py`, `cli.py`, or the canonical validation commands cha
   whole class: a failed run with no jobs and no logs is a workflow-file-
   level failure, not a step failure — check `gh run view <id>` and
   `gh api /repos/{owner}/{repo}/actions/workflows`.
+- **Remote splitting (`split_remote`)** — scheme URLs (`https`/`ssh`-prefixed, with a host
+  segment) and scp-style (`git@host:owner/repo`) parse to `(owner, repo)`;
+  local paths return `None`. An earlier version returned a bogus pair such as `("tmp", "smoke")`
+  for a `/tmp/...` remote — a doomed API call and a misleading 404 warning. Fixed 2026-10-09
+  during the test-hardening pass and locked by `tests/test_platform.py`.
 
 ## 3. Anti-drift literature (2026)
 

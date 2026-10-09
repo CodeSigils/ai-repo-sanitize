@@ -58,7 +58,7 @@ def resolve_token() -> str | None:
     return token or None
 
 
-def _api_request(url: str, token: str | None) -> urllib.request.Request:
+def api_request(url: str, token: str | None) -> urllib.request.Request:
     headers = {
         "Accept": "application/vnd.github+json",
         "User-Agent": "ai-repo-sanitize",
@@ -69,13 +69,13 @@ def _api_request(url: str, token: str | None) -> urllib.request.Request:
     return urllib.request.Request(url, headers=headers)
 
 
-def _get_json(url: str, token: str | None) -> Any:
+def get_json(url: str, token: str | None) -> Any:
     """GET *url* and return the decoded JSON; retry once on transient errors.
 
     HTTP errors are server decisions and are not retried (they will not
     resolve in a second); network failures get a single retry.
     """
-    request = _api_request(url, token)
+    request = api_request(url, token)
     attempts = 0
     while True:
         try:
@@ -96,7 +96,7 @@ def contributors_via_api(owner: str, repo: str) -> ContributorsSnapshot:
     the auth-less, rate-limited path otherwise. Good enough for a post-push
     sanity print. Raises :class:`urllib.error.URLError` on network problems.
     """
-    data = _get_json(f"{_GH_BASE}/repos/{owner}/{repo}/contributors", resolve_token())
+    data = get_json(f"{_GH_BASE}/repos/{owner}/{repo}/contributors", resolve_token())
     logins = tuple(item["login"] for item in data if isinstance(item, dict) and item.get("login"))
     return ContributorsSnapshot(owner=owner, repo=repo, logins=logins)
 

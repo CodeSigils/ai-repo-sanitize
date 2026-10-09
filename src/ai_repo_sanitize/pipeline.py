@@ -64,21 +64,24 @@ def _require_git_repo(work: Path) -> None:
         raise PipelineError(f"not a git repository: {work}")
 
 
-def _split_remote(url: str) -> tuple[str, str] | None:
+def split_remote(url: str) -> tuple[str, str] | None:
     """Best-effort (owner, repo) from a remote URL; None when unparseable.
 
     Accepts https://host/owner/repo.git, ssh://git@host/owner/repo.git and
-    scp-style git@host:owner/repo.git; rejects local paths (a real owner
-    never contains a "/").
+    scp-style git@host:owner/repo.git. Rejects local paths and anything
+    without a scheme or scp-style host (a real owner never contains a "/"),
+    so a local-path remote cannot trigger a doomed API call.
     """
     stripped = url.removesuffix(".git")
-    if "://" in stripped:
-        stripped = stripped.split("://", 1)[1]
-    if stripped.startswith("git@") and ":" in stripped:
-        stripped = stripped.split(":", 1)[1]
-    if "/" in stripped:
-        stripped = stripped.split("/", 1)[1]
-    owner, sep, repo = stripped.rpartition("/")
+    if "://" in stripped:  # https://host/owner/repo or ssh://git@host/owner/repo
+        rest = stripped.split("://", 1)[1]
+        if "/" in rest:  # drop the host segment
+            rest = rest.split("/", 1)[1]
+    elif stripped.startswith("git@") and ":" in stripped:  # git@host:owner/repo
+        rest = stripped.split(":", 1)[1]
+    else:
+        return None
+    owner, sep, repo = rest.rpartition("/")
     if not sep or not owner or not repo or "/" in owner:
         return None
     return owner, repo
@@ -149,7 +152,7 @@ def run_rewrite(plan: RewritePlan) -> RewriteReport:
         report.pushed = True
 
     # Step 5 - check the surfaces: contributors widget cache.
-    pair = _split_remote(plan.remote_url) if plan.remote_url else None
+    pair = split_remote(plan.remote_url) if plan.remote_url else None
     if pair is not None:
         owner, repo = pair
         try:
