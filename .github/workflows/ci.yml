@@ -63,6 +63,8 @@ jobs:
         run: uv run python scripts/validate-docs.py
       - name: Doc coverage warning (datadef-style)
         run: uv run python scripts/check-doc-coverage.py
+      - name: Doc claims check (codocia-class)
+        run: uv run python scripts/check-doc-claims.py
       - name: External URL check (scheduled only)
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         run: uv run python scripts/verify-urls.py

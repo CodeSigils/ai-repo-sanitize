@@ -20,12 +20,6 @@ no check attached are deliberately excluded or parked — see
 Shipped: `check` / `preview` / `rewrite` modes, canonical validation gate,
 `.githooks` + CI, and the guarded documentation set.
 
-In-flight polish for v0.1:
-
-| Item | Goal | Anti-drift check |
-| --- | --- | --- |
-| `.githooks/pre-push` | Run the canonical gate before push (org uses pre-push in 2 of 4 repos) | Hook lists the same 4 canonical commands, so the substring contract in `validate-docs.py` extends naturally |
-
 Completed for v0.1 (2026-10-09):
 
 - **End-to-end rewrite test in CI** — `tests/test_integration.py` drives the full guarded arc:
@@ -77,6 +71,19 @@ Completed for v0.2 (2026-10-09):
 | Optional: `evals/` + `schemas/` dirs | Org skill repos carry evals; only if we add behavior-parity evals for rewrite | Kept optional; if added, mirror the org's `validate-evals.py`-style gate |
 
 ## v0.3 — agent-side drift checks
+
+**Completed for v0.3 (2026-10-09):**
+
+- **Agent-side claims check (codocia-class)** — `scripts/check-doc-claims.py`
+  fails when a doc references a backticked repo path (src/, scripts/, tests/,
+  .githooks/, .github/, pyproject.toml, uv.lock) that does not exist; tested
+  in `tests/test_check_doc_claims.py`; wired into pre-commit, CI, and an
+  AGENTS.md guardrail.
+- **Standing instruction shipped (Staleguard-class)** — the "run the gate
+  and fix any drift before claiming completion" rule is concrete: the
+  deterministic checker works inside the editing loop, so doc↔code drift
+  cannot survive a commit. Heavy `covers` coverage + snapshot hashing remain
+  non-goals (see Non-goals).
 
 | Item | Goal | Anti-drift check |
 | --- | --- | --- |

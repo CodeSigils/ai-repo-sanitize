@@ -27,6 +27,20 @@ optional.
 - The removal pattern this tool applies is the single source of truth in
   [`src/ai_repo_sanitize/patterns.py`](src/ai_repo_sanitize/patterns.py), mirrored by the article's example.
 
+## Design principles
+
+- **Tested, not trusted** — the test suite runs on every push and pull
+  request across Python 3.10-3.14, including an end-to-end rewrite exercised
+  against a local bare remote; no code path ships without a test.
+- **Research-based** — every mechanism traces to a RESEARCH.md decision and
+  an empirical verification: the silent parser bug, the bad action SHAs, the
+  missing PYTHONPATH, the remote-URL parsing bug, the YAML-anchor failure.
+- **Check-the-checker** — the docs validator, the freshness gate, the
+  doc-coverage checker, and the doc-claims checker are themselves
+  unit-tested, so the guards cannot rot.
+- **Portable** — stdlib-only runtime, POSIX-only hooks and greps (never `-P`
+  or `\b`), macOS/BSD-safe, Python 3.10+.
+
 ## Modes
 
 | Command | What it does | Safe by default |

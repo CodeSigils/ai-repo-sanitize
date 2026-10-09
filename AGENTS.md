@@ -49,3 +49,8 @@ Interactive version with recommendations: `CONTRIBUTING.md`.
   Actions page). A run can fail with "workflow file issue" and *zero jobs*,
   leaving no logs — the local gate alone does not prove CI is green. See
   `RESEARCH.md` §2 for the detection pattern.
+
+- Agent-side claims check: `scripts/check-doc-claims.py` fails when a
+  documented backticked repo path (src/, scripts/, tests/, .githooks/,
+  .github/, pyproject.toml, uv.lock) does not exist. Run it with the gate —
+  it is the codocia-class half that works inside the editing loop.

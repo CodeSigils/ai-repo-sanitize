@@ -12,4 +12,7 @@ uv run ty check
 echo "=== pre-commit: docs contract ==="
 uv run python scripts/validate-docs.py
 
+echo "=== pre-commit: doc claims ==="
+uv run python scripts/check-doc-claims.py
+
 echo "=== pre-commit: PASS ==="
