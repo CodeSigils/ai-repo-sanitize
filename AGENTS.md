@@ -43,3 +43,7 @@ Interactive version with recommendations: `CONTRIBUTING.md`.
 - Read `.github/workflows/ci.yml` before changing behavior: it is the
   executable picture of what this repo validates. The docs mirror it, and
   `scripts/validate-docs.py` enforces the agreement between them.
+- Inspect the remote CI state before and after pushing (`gh run list` or the
+  Actions page). A run can fail with "workflow file issue" and *zero jobs*,
+  leaving no logs — the local gate alone does not prove CI is green. See
+  `RESEARCH.md` §2 for the detection pattern.

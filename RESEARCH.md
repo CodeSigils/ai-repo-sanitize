@@ -14,7 +14,7 @@ this file when `patterns.py`, `cli.py`, or the canonical validation commands cha
   #83813), Codex (#19799), community discussions, declaudify (ParkerrDev), and
   Londopy/git-attribution.
 
-## 2. Git mechanics (empirically verified)
+## 2. Git and CI mechanics (empirically verified)
 
 - **git-filter-repo `--message-callback`**: receives `message` as bytes (possibly multi-line),
   must `return` new bytes; `import re` inside the callback works; `--dry-run` does NOT preview
@@ -33,6 +33,23 @@ this file when `patterns.py`, `cli.py`, or the canonical validation commands cha
 - **GitHub contributors cache**: the API/Insights surface may lag a force-push for hours; there
   is no supported flush command. `PATCH /repos/{owner}/{repo}` accepts `default_branch` — the
   basis for the opt-in `--nudge-cache` last resort, which is never automatic.
+- **GitHub Actions does not support YAML anchors/aliases in workflow files.**
+  Empirically verified 2026-10-09: run 37915474228 on this repo failed with
+  "This run likely failed because of a workflow file issue" and *zero jobs*
+  (`jobs: []`) after `x-checkout: &checkout ...` + `uses: *checkout` anchors
+  were introduced; the workflow stayed `state: active` and no check runs or
+  logs were created, so the failure is invisible in the Actions job list.
+  Long-standing feature request actions/runner#1182 and the historical hard
+  rejection "Anchors are not currently supported" (action-validator#7/#70)
+  confirm the runner uses a partial YAML implementation; GitHub's docs
+  (2025) now describe *basic* anchors/aliases but explicitly exclude merge
+  keys (`<<:`), which is what makes anchors useful for composition.
+  Dealing with it: pin actions explicitly per job with `# vX.Y.Z` comments
+  and accept duplication; never centralize via anchors, and never trust a
+  tag defined but not aliased to be meaningful. Detection pattern for this
+  whole class: a failed run with no jobs and no logs is a workflow-file-
+  level failure, not a step failure — check `gh run view <id>` and
+  `gh api /repos/{owner}/{repo}/actions/workflows`.
 
 ## 3. Anti-drift literature (2026)
 
@@ -102,3 +119,8 @@ convention guards at hook level.
 - GitLab markdown-link-check component: <https://gitlab.com/gitlab-org/technical-writing/markdown-link-check>
 - declaudify: <https://github.com/ParkerrDev/declaudify>
 - git-attribution: <https://github.com/Londopy/git-attribution>
+- GitHub Actions YAML anchors feature request: <https://github.com/actions/runner/issues/1182>
+- action-validator "anchors aren't allowed": <https://github.com/mpalmer/action-validator/issues/7>
+- action-validator "YAML references aren't supported": <https://github.com/mpalmer/action-validator/issues/70>
+- GitHub docs on anchors/aliases (reusing workflow configurations): <https://docs.github.com/en/actions/reference/workflows-and-actions/reusing-workflow-configurations#yaml-anchors-and-aliases>
+- frenck.dev analysis of the partial anchor support (no merge keys, 2025-10): <https://frenck.dev/github-actions-yaml-anchors-aliases-merge-keys/>

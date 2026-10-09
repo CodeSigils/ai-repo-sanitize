@@ -1,11 +1,9 @@
 name: validate
 
-# Action pins, centralized via YAML anchors. `uses:` cannot take ${{ }}
-# expressions, so anchors are the only way to keep one pinned SHA shared by
-# every job — update these in one place and the two jobs stay in sync.
-x-checkout: &checkout actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-x-setup-python: &setup-python actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-x-setup-uv: &setup-uv astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+# Action pins: each job pins the same SHAs explicitly. GitHub Actions does
+# not support YAML anchors/aliases in workflow files (see RESEARCH.md), so a
+# pin update means updating every occurrence — keep the `# vX.Y.Z` comments
+# in lock-step across the quality and python-compat jobs.
 
 on:
   workflow_dispatch:
@@ -14,7 +12,7 @@ on:
     tags: ["v*.*.*"]
     # Docs-only changes never trigger the full matrix; README changes are
     # covered by pr-open runs and the weekly schedule below.
-    paths: &ci_paths
+    paths:
       - ".github/**"
       - "pyproject.toml"
       - "uv.lock"
@@ -40,13 +38,13 @@ jobs:
     runs-on: ${{ vars.RUNNER_X86_64 || 'ubuntu-latest' }}
     timeout-minutes: 10
     steps:
-      - uses: *checkout
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: *setup-python
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.14"
-      - uses: *setup-uv
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
           version: "0.11.7"
           enable-cache: true
@@ -74,10 +72,10 @@ jobs:
       matrix:
         python-version: ["3.12", "3.13", "3.14"]
     steps:
-      - uses: *checkout
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: *setup-python
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ matrix.python-version }}
       - name: Stdlib test runner across versions

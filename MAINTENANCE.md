@@ -77,9 +77,11 @@ request, and re-checks external URLs on a weekly schedule:
 - **quality** — `uv sync --locked`, shellcheck the hooks, then the
   canonical gate: `ruff check .`, `ty check`, `pytest`, `validate-docs.py`;
   `verify-urls.py` runs only on schedule or manual dispatch.
-- **Action pins** — the checkout/setup-python/setup-uv SHAs are centralized
-  at the top of ci.yml as YAML anchors (`x-checkout`, `x-setup-python`,
-  `x-setup-uv`); update them in that one place.
+- **Action pins** — the checkout/setup-python/setup-uv SHAs are pinned
+  explicitly in each job. GitHub Actions does not support YAML anchors or
+  aliases in workflow files (empirically verified 2026-10-09; see
+  RESEARCH.md §2), so a pin update means updating every occurrence and
+  keeping the `# vX.Y.Z` comments in lock-step.
 - **python-compat** — the same tests run with the stdlib runner across Python
   3.12, 3.13, and 3.14.
 
@@ -111,6 +113,7 @@ Maintainers who run it on a real repository should remember:
 | `validate-docs.py` fails on "missing" a doc | Docs set drifted | Recreate/rename the file; the validator lists what is missing |
 | `validate-docs.py` fails on a canonical command | README/CONTRIBUTING/ci.yml spelling drifted | Restore the verbatim `uv run ...` spelling (no `--no-sync` in ci.yml) |
 | `ty check` fails | Annotation drift in `src/` | Fix the annotations; ty is strict by design |
+| A run fails with "workflow file issue", zero jobs, and no logs | Workflow-file-level validation failure (e.g. YAML anchors/aliases) — jobs never instantiate | `gh run view <id>` and `gh api /repos/{owner}/{repo}/actions/workflows`; fix the YAML; see RESEARCH.md §2 |
 | Hook not running | `core.hooksPath` not set in the clone | `git config core.hooksPath .githooks` |
 | commit-msg rejects a legit message | Message matches the AI-trailer pattern | If truly a human co-author, adjust the message so the name token differs (see the pattern trade-off in SECURITY.md); never blanket `--no-verify` |
 | `git filter-repo` not found at runtime | Tool installed outside the active env | Install it: `uv tool install git-filter-repo` (or `pip install git-filter-repo`) |
