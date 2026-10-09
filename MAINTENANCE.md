@@ -79,7 +79,9 @@ request, and re-checks external URLs on a weekly schedule:
 
 - **quality** — `uv sync --locked`, shellcheck the hooks, then the
   canonical gate: `ruff check .`, `ty check`, `pytest`, `validate-docs.py`;
-  `verify-urls.py` runs only on schedule or manual dispatch.
+  a datadef-style doc-coverage step warns (never fails) when a code change
+  ships without a matching docs change; `verify-urls.py` runs only on
+  schedule or manual dispatch.
 - **Action pins** — the checkout/setup-python/setup-uv SHAs are pinned
   explicitly in each job. GitHub Actions does not support YAML anchors or
   aliases in workflow files (empirically verified 2026-10-09; see
@@ -147,7 +149,7 @@ Maintainers who run it on a real repository should remember:
 | Hook not running | `core.hooksPath` not set in the clone | `git config core.hooksPath .githooks` |
 | commit-msg rejects a legit message | Message matches the AI-trailer pattern | If truly a human co-author, adjust the message so the name token differs (see the pattern trade-off in SECURITY.md); never blanket `--no-verify` |
 | `git filter-repo` not found at runtime | Tool installed outside the active env | Install it: `uv tool install git-filter-repo` (or `pip install git-filter-repo`) |
-| Push fails with SSH | SSH key not configured or rotated | Fall back to HTTPS + token once: `gh auth setup-git`, `git remote set-url origin https://github.com/CodeSigils/ai-repo-sanitize.git`, push, then restore the SSH URL |
+| Push fails with SSH | SSH key not configured or rotated | Fall back to HTTPS + token once: `gh auth setup-git`, `git remote set-url origin https://github.com/CodeSigils/ai-repo-sanitize`, push, then restore the SSH URL |
 
 ## Logging and state
 

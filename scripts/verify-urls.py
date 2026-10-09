@@ -40,7 +40,8 @@ def collect_urls() -> tuple[dict[str, list[str]], list[str]]:
             continue
         doc = str(path.relative_to(ROOT))
         for url in _URL_RE.findall(text):
-            clean = url.rstrip(".,;:!?")
+            # A closing markdown code-span backtick is never part of the URL.
+            clean = url.rstrip(".,;:!?`")
             per_url.setdefault(clean, []).append(doc)
     for docs in per_url.values():
         docs.sort()

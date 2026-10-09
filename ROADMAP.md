@@ -67,10 +67,13 @@ Completed for v0.2 (2026-10-09):
   fenced code blocks, so docs carrying such link forms or code samples cannot
   false-fail the internal-link check. Balanced-parens destinations remain a
   documented limitation (RESEARCH.md §2).
+- **Doc-coverage WARN** — `scripts/check-doc-coverage.py` warns (never fails)
+  when a code-path change ships without a matching docs change (datadef
+  warn-not-fail: "start as warnings; hard fail invites token edits"); the
+  warning names the changed paths and points at ANTIDRIFT.md's code-changes rule.
 
 | Item | Goal | Anti-drift check |
 | --- | --- | --- |
-| Git-diff doc-coverage warning | CI step warns (does not fail) when a `src/` or `.githooks/` change ships without a matching docs change (datadef §4 Danger rule: "start as warnings; hard fail invites token edits") | Warning text points at `ANTIDRIFT.md` § code-changes rule so the fix is mechanical |
 | Optional: `evals/` + `schemas/` dirs | Org skill repos carry evals; only if we add behavior-parity evals for rewrite | Kept optional; if added, mirror the org's `validate-evals.py`-style gate |
 
 ## v0.3 — agent-side drift checks
