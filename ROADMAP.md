@@ -93,6 +93,26 @@ Completed for v0.2 (2026-10-09):
 | Codocia-class `covers` coverage | Markdown docs declare which code symbols they cover; snapshot hashes of covered files; `check --base main` reports changed-code-without-docs-coverage | The checker runs in CI on the weekly schedule next to `verify-urls.py`, and its policy file is agent-readable (codocia.md pattern) |
 | Staleguard-class standing instruction | AGENTS.md gains: "after editing code or docs, run the canonical gate and fix any drift" | Already half-there via AGENTS.md's validation gate; extension makes the re-verification of `RESEARCH`/`ROADMAP`/`ANTIDRIFT` mandatory |
 
+## Next (queued 2026-10-09)
+
+- **Real-world verification session** — two throwaway-repository test legs,
+  planned for the next working day:
+  1. contributor recognition — run `check` over commits whose co-authors come
+     from the awesome-agent-trust contributor list; genuine human
+     `Co-authored-by:` lines must be recognized (zero false positives);
+  2. intentional pollution — build a temp repository whose commit messages
+     deliberately carry the common intrusive AI patterns and assert each one
+     is flagged exactly.
+  Evidence and outcomes land in RESEARCH.md §7 (future research).
+- **PyPI publishing** — add a tag-triggered `uv publish` step to release.yml
+  so `uv tool install ai-repo-sanitize` works from PyPI; research first
+  (RESEARCH.md §7), trusted publishing preferred over long-lived tokens.
+- **Third-party CI integration** — document and exercise the one-step
+  `ai-repo-sanitize check` usage in downstream CI (RESEARCH.md §7 first).
+- **Low-value fillers (back-burner)** — optional `evals/` + `schemas/` dirs
+  (org convention), issue templates, PyPI README polish (only after the PyPI
+  publish step exists).
+
 ## Non-goals
 
 From [ANTIDRIFT.md](ANTIDRIFT.md) § Non-goals, restated so nobody re-proposes

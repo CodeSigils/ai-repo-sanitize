@@ -186,3 +186,26 @@ absent); awesome-agent-trust has no hooks at all.
 - GitHub Dependabot grouped version updates (PR optimization): <https://docs.github.com/en/code-security/tutorials/secure-your-dependencies/optimizing-pr-creation-version-updates>
 - Dependabot configuration options reference: <https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference>
 - Dependabot for GitHub Actions: <https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-on-actions>
+
+## 7. Future research (queued 2026-10-09)
+
+Research-first entries for the queued next steps; each is an inquiry that must
+land *before* implementation so the change is informed, not improvised.
+
+- **PyPI publishing** — validate `uv publish` (trusted publishing / OIDC
+  instead of long-lived tokens) as the tag-triggered release step, so
+  `uv tool install ai-repo-sanitize` resolves from PyPI rather than from the
+  repository. Reference:
+  <https://docs.astral.sh/uv/guides/publish/>.
+- **Third-party CI integration** — decide how downstream repositories best run
+  `ai-repo-sanitize check` in their own workflows (a plain two-line step, a
+  pinned-SHA action, or a composite action) and which shape keeps the tool's
+  own gates honest when it inspects foreign history. Reference:
+  <https://docs.github.com/en/actions/sharing-automations/creating-actions/about-custom-actions>.
+- **Real-history fixture testing** — two empirical legs on throwaway
+  repositories: (1) run `check` over commits whose co-authors come from a real
+  contributor list (awesome-agent-trust) to prove genuine human co-authors are
+  recognized with zero false positives; (2) build a temp repository with
+  intentionally polluted messages covering the common intrusive AI patterns
+  and assert each one is flagged exactly. The outcome feeds the pattern set
+  and tests. Reference: <https://github.com/CodeSigils/awesome-agent-trust>.
