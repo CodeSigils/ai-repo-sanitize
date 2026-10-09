@@ -61,6 +61,10 @@ uv run ty check && uv run ruff check . && uv run pytest
 
 Commit `pyproject.toml` and `uv.lock` together.
 
+Dependabot proposes grouped weekly updates for the uv toolchain and GitHub
+Actions per `.github/dependabot.yml`; merge its PRs only after the canonical
+gate passes.
+
 ### Weekly URL re-check
 
 ci.yml runs `scripts/verify-urls.py` on the weekly schedule and on manual

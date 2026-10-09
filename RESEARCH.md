@@ -103,6 +103,22 @@ docs/ minimums; `.githooks/` pre-commit everywhere (pre-push in heavier repos);
 as a guarded root markdown file; check-the-checker tests (`test-validate-ci.py`); commit
 convention guards at hook level.
 
+Dependency-update practice (2026-10-09): four of five inspected repos carry
+a GitHub-native `.github/dependabot.yml` (repo-health-scan,
+python-project-workflow-skill, repo-architecture-skill, awesome-agent-trust);
+py-review-skill instead relies on a scheduled dependency-freshness workflow,
+and repo-health-scan adds a cron-driven dependency-backlog script that
+comments on stale dependency PRs. repo-architecture-skill's config
+implements its research note (docs/research/automation-bots-and-workflows.md):
+disjoint update-type groups (actions-maintenance minor+patch,
+uv-maintenance patch, ruff-minor-review and ty-minor-review minors isolated
+because zero-major toolchain minors break the locked contract), a two-PR cap
+per ecosystem, group labels, no exclude-patterns (excluded deps resurface as
+ungrouped PRs and double review load), no auto-merge. Hook practice varies:
+python-project-workflow-skill's pre-commit is the richest (hook-integrity
+self-check first, then a conditional uv guard that skips lint when uv is
+absent); awesome-agent-trust has no hooks at all.
+
 ## 5. Design decisions
 
 1. **One pattern, everywhere.** `patterns.py` defines the attribution regex once; check,
@@ -127,6 +143,16 @@ convention guards at hook level.
    list the 4 canonical commands verbatim; ci.yml must run them verbatim (a plain substring
    check — that is why ci.yml never uses `--no-sync`); required docs exist; internal links
    resolve.
+
+8. **Dependency updates stay GitHub-native and group-gated** — Dependabot
+   (`.github/dependabot.yml`) proposes weekly grouped updates: action pins
+   under `actions-maintenance` (minor+patch), uv patches under
+   `uv-maintenance`, ruff/ty minor releases isolated for separate review
+   (`ruff-minor-review`, `ty-minor-review`); no
+   exclude-patterns, no auto-merge; the protect-master ruleset and the
+   canonical 4-command gate govern every Dependabot PR. Rationale: the org
+   research note automation-bots-and-workflows.md (repo-architecture-skill)
+   plus the empirical GITHUB_TOKEN/permissions model recorded in §2.
 
 ## 6. Reference URLs
 
@@ -154,3 +180,9 @@ convention guards at hook level.
 - GitHub CLI environment variables (GH_TOKEN): <https://cli.github.com/manual/gh_help_environment>
 - GitHub security hardening for GitHub Actions (pin third-party actions by full-length SHA): <https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions>
 - GitHub Actions events that trigger workflows (push): <https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows#push>
+- GitHub token security (GITHUB_TOKEN): <https://docs.github.com/en/actions/concepts/security/github_token>
+- GitHub Actions workflow syntax (permissions): <https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax>
+- GitHub Actions choosing when your workflow runs: <https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run>
+- GitHub Dependabot grouped version updates (PR optimization): <https://docs.github.com/en/code-security/tutorials/secure-your-dependencies/optimizing-pr-creation-version-updates>
+- Dependabot configuration options reference: <https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference>
+- Dependabot for GitHub Actions: <https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-on-actions>

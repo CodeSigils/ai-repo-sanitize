@@ -65,6 +65,9 @@ Completed for v0.2 (2026-10-09):
   when a code-path change ships without a matching docs change (datadef
   warn-not-fail: "start as warnings; hard fail invites token edits"); the
   warning names the changed paths and points at ANTIDRIFT.md's code-changes rule.
+- **Dependency freshness** — Dependabot enabled 2026-10-09: weekly grouped uv
+  + GitHub Actions updates per the org research note; PRs run the canonical
+  gate; merged by maintainers; no auto-merge.
 
 | Item | Goal | Anti-drift check |
 | --- | --- | --- |
