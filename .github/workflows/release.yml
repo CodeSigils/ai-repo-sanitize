@@ -29,6 +29,8 @@ jobs:
         run: uv build
       - name: Create GitHub Release
         # gh is preinstalled on runners; GITHUB_REF_NAME is the triggering tag.
-        # Auto-generated notes from --generate-notes; refine afterwards with
-        # `gh release edit <tag>`.
+        # gh in Actions needs the token passed explicitly (auto-provisioned
+        # tokens are not picked up otherwise - failed with exit code 4).
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: gh release create "$GITHUB_REF_NAME" dist/* --generate-notes

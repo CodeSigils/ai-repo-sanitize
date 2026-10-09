@@ -104,12 +104,18 @@ Releases are tag-driven and mostly automatic:
    (`on: push tags: v*.*.*`), which syncs the locked environment, builds
    distributions with `uv build`, and creates the GitHub Release from
    `dist/*` with auto-generated notes.
-3. A tag on an already-verified commit changes no files, so the
-   path-filtered `.github/workflows/ci.yml` does not re-run for it — the full
-   gate already ran when that commit landed on `master`. Treat the master
-   push as the gate for the release.
+3. The tag push re-runs `.github/workflows/ci.yml` as well — path filters do
+   not block tag pushes in practice (verified 2026-10-09: the v0.1.0 tag push
+   ran the full validate workflow to success). The canonical gate therefore
+   runs twice: once on the master push and once on the tag; both must stay
+   green.
 4. Refine the release notes afterwards with `gh release edit vX.Y.Z` (or the
    web UI).
+
+Transport is SSH (`git@github.com:CodeSigils/ai-repo-sanitize.git`) — no token
+machinery is needed locally. Tokens only appear inside workflows (`gh release
+create` sets `GH_TOKEN` explicitly; auto-provisioned tokens are not picked up
+otherwise) or as a one-off HTTPS fallback (see Troubleshooting).
 
 SemVer: the next behavior change ships as `v0.2.0`; bugfix-only hardening
 stays a patch.
@@ -141,6 +147,7 @@ Maintainers who run it on a real repository should remember:
 | Hook not running | `core.hooksPath` not set in the clone | `git config core.hooksPath .githooks` |
 | commit-msg rejects a legit message | Message matches the AI-trailer pattern | If truly a human co-author, adjust the message so the name token differs (see the pattern trade-off in SECURITY.md); never blanket `--no-verify` |
 | `git filter-repo` not found at runtime | Tool installed outside the active env | Install it: `uv tool install git-filter-repo` (or `pip install git-filter-repo`) |
+| Push fails with SSH | SSH key not configured or rotated | Fall back to HTTPS + token once: `gh auth setup-git`, `git remote set-url origin https://github.com/CodeSigils/ai-repo-sanitize.git`, push, then restore the SSH URL |
 
 ## Logging and state
 
