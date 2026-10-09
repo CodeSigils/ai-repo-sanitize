@@ -32,6 +32,7 @@ PASS: README.md and CONTRIBUTING.md list every canonical command
 PASS: ci.yml runs every canonical command verbatim
 PASS: .githooks/pre-commit runs ruff check and the docs validator
 PASS: all internal relative links resolve
+PASS: every required doc carries a current Last reviewed header
 ```
 
 ### Installing hooks
@@ -92,6 +93,26 @@ The docs mirror the workflow, and `scripts/validate-docs.py` enforces the
 agreement: if ci.yml stops running a canonical command verbatim, the gate
 fails. Agents and maintainers should treat the workflow file as the source of
 truth for what is validated and when.
+
+## Releasing
+
+Releases are tag-driven and mostly automatic:
+
+1. From `master` with the canonical gate green, create an annotated tag:
+   `git tag -a vX.Y.Z -m "..."` and push it: `git push origin vX.Y.Z`.
+2. The tag push fires `.github/workflows/release.yml`
+   (`on: push tags: v*.*.*`), which syncs the locked environment, builds
+   distributions with `uv build`, and creates the GitHub Release from
+   `dist/*` with auto-generated notes.
+3. A tag on an already-verified commit changes no files, so the
+   path-filtered `.github/workflows/ci.yml` does not re-run for it — the full
+   gate already ran when that commit landed on `master`. Treat the master
+   push as the gate for the release.
+4. Refine the release notes afterwards with `gh release edit vX.Y.Z` (or the
+   web UI).
+
+SemVer: the next behavior change ships as `v0.2.0`; bugfix-only hardening
+stays a patch.
 
 ## The rewrite flow, in summary
 

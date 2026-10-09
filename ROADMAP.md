@@ -24,7 +24,6 @@ In-flight polish for v0.1:
 
 | Item | Goal | Anti-drift check |
 | --- | --- | --- |
-| `CITATION.cff` | Citation metadata; present in 3 of 4 inspected CodeSigils repos | None needed — static file, but keep it listed in `validate-docs.py` required docs if added |
 | `.githooks/pre-push` | Run the canonical gate before push (org uses pre-push in 2 of 4 repos) | Hook lists the same 4 canonical commands, so the substring contract in `validate-docs.py` extends naturally |
 
 Completed for v0.1 (2026-10-09):
@@ -43,9 +42,16 @@ Completed for v0.1 (2026-10-09):
   `validate-docs.py` `findings()` over temporary fixtures (missing docs, command drift, broken
   links, freshness states) via `--root`/`--today`/`--review-window`. Org convention borrowed
   from python-project-workflow-skill (`validate-ci.py` + `test-validate-ci.py`).
+- **Release machinery** — `.github/workflows/release.yml` syncs, builds distributions
+  (`uv build`), and creates the GitHub Release on any `v*.*.*` tag push
+  (`gh release create --generate-notes`). First annotated tag: `v0.1.0` (2026-10-09).
+  SemVer: minor bump on the next behavior change; bugfix-only hardening stays a patch.
+- **Citation metadata** — `CITATION.cff` (org convention: present in 3 of 4 inspected
+  CodeSigils repos), mirroring the org shape (cff-version 1.2.0, family-names CodeSigils,
+  license MIT, type software, repository-code https://github.com/CodeSigils/ai-repo-sanitize).
 
-Anti-drift check for all three: they live in `tests/`, which the canonical 4-command gate runs
-on every push — they cannot rot silently.
+Anti-drift check for these: they live in `tests/` and `scripts/`, which the canonical
+4-command gate runs on every push — they cannot rot silently.
 
 ## v0.2 — freshness and coverage gates
 

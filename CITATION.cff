@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "If you use this work in your research, please cite it as below."
+authors:
+  - family-names: "CodeSigils"
+title: "AI Repo Sanitize"
+license: MIT
+type: software
+repository-code: https://github.com/CodeSigils/ai-repo-sanitize
+description: "Safely strip AI attribution trailers from git history: check, preview, rewrite, verify, publish. Safe-by-default with a guarded, tested rewrite pipeline and a docs-code drift guard."
