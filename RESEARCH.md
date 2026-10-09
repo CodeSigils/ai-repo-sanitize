@@ -1,0 +1,104 @@
+# Research and Decisions (RESEARCH.md)
+
+Last reviewed: 2026-10-09. Reference document: cites the external sources and records the
+design decisions built on them. Per the [ANTIDRIFT code-changes rule](ANTIDRIFT.md), re-verify
+this file when `patterns.py`, `cli.py`, or the canonical validation commands change.
+
+## 1. Primary domain source
+
+- **"When an AI Agent Signs Your Commits"** (Zensical blog, `when-an-ai-signs-your-commits.md`,
+  October 2026): the incident and remediation this tool generalizes. Provides the validated
+  rewrite flow — filter-repo `--message-callback`, origin-remote deletion, tree-SHA gate,
+  residual scan, `--force-with-lease` push, and the last-resort default-branch cache nudge —
+  plus its Sources section linking Claude Code issues (#48145, #7422, #53259, #79909, #64019,
+  #83813), Codex (#19799), community discussions, declaudify (ParkerrDev), and
+  Londopy/git-attribution.
+
+## 2. Git mechanics (empirically verified)
+
+- **git-filter-repo `--message-callback`**: receives `message` as bytes (possibly multi-line),
+  must `return` new bytes; `import re` inside the callback works; `--dry-run` does NOT preview
+  message-only rewrites (unknown new commit IDs) — preview comes from `git log --grep` instead.
+- **Origin deletion by design**: filter-repo intentionally removes the `origin` remote
+  (newren, issue #282) so the operator re-adds it consciously. A `--mirror` clone is exempt
+  (issue #347) — our mirror is only the backup; the working clone is a normal clone, so origin
+  is re-added before any push.
+- **Fresh-clone requirement**: filter-repo aborts outside a fresh clone unless `--force`
+  (we pass `--force` on the scratch clone we own).
+- **git-filter-branch man page**: explicitly recommends git-filter-repo.
+- **`git log --grep`**: searches subject *and* body; `--format` only selects display. Flags
+  `-i -E` are git's own and behave identically on Linux and macOS; `-E` is required (BRE makes
+  `|` literal) and `-i` is required (misses `Co-authored-by:` capital C otherwise). `\b` is
+  not POSIX-clean in git's engine, so `GIT_GREP_PATTERN` avoids it; the Python regex keeps it.
+- **GitHub contributors cache**: the API/Insights surface may lag a force-push for hours; there
+  is no supported flush command. `PATCH /repos/{owner}/{repo}` accepts `default_branch` — the
+  basis for the opt-in `--nudge-cache` last resort, which is never automatic.
+
+## 3. Anti-drift literature (2026)
+
+| Source | Finding adopted | Decision |
+| --- | --- | --- |
+| sourcegraph.com/blog/documentation-as-code | docs-as-code = git + markdown + review + CI; the code-changer is the best doc-updater; agents read docs as input | one-change-one-commit rule; CI-checkable claims |
+| lycheeverse/lychee | fast Rust link checker; schedule-friendly; anchor fragment support | rejected as binary dep — stdlib `verify-urls.py` suffices |
+| cosmocoder/doc-freshness-checker | validate doc references (paths, URLs, versions, symbols) in CI | Layer-1 contract; semantic layers rejected as overkill |
+| datadef.io docs-checks-in-ci | 4 checks: links (on a **schedule**), prose (Vale), freshness (`last_reviewed` window), diff-coverage warn-not-fail | schedule-based verify-urls; `last_reviewed` gate queued for v0.2; warn-not-fail diff rule |
+| Arthur920/Staleguard | deterministic Layer-1 drift checks; agent guardrail: run check after edits | our validate-docs.py + AGENTS.md gate mirror this |
+| andimrob/docrot | `last_reviewed` frontmatter + interval / until_date / **code_changes** strategies | code-changes rule adopted now; interval gate queued for v0.2 |
+| codocia (docs.rs) | docs drift checker FOR agents: `covers` patterns + snapshot hashes; "docs are source of truth" | patterns/checker idea adopted conceptually; tool itself overkill now |
+| GitLab technical-writing/markdown-link-check | lychee-powered CI component, `--offline --include-fragments` | corroborates schedule-based link checking |
+
+Key quote governing the whole strategy (datadef.io): *"CI detects proxies for outdatedness
+rather than outdatedness itself."*
+
+## 4. CodeSigils org conventions (evidence-based)
+
+Inspected active repos (repo-health-scan, repo-architecture-skill, zensical-skill,
+python-project-workflow-skill): AGENTS.md + SECURITY.md + LICENSE + pyproject + uv.lock +
+docs/ minimums; `.githooks/` pre-commit everywhere (pre-push in heavier repos);
+`scripts/verify-urls.py` in 3 of 4; a `validate*.py` contract + CI in every repo; roadmap kept
+as a guarded root markdown file; check-the-checker tests (`test-validate-ci.py`); commit
+convention guards at hook level.
+
+## 5. Design decisions
+
+1. **One pattern, everywhere.** `patterns.py` defines the attribution regex once; check,
+   preview, rewrite-callback and the commit-msg hook all derive from it. Preview's
+   `GIT_GREP_PATTERN` is the ERE form of `ATTRIBUTION_RE` minus `\b`.
+2. **Human co-authors survive.** A `Co-authored-by` trailer is dropped only when one of the
+   known agent names (`sisyphus, claude, opencode, codex, copilot, cursor, devin`) appears on
+   the line; branded lines (`ultraworked|generated|assisted with`) are always removed. This is
+   a documented trade-off, covered by tests.
+3. **Minimal destructive rewrite.** Only matching lines are removed and trailing blanks
+   trimmed; line-ending style (CRLF vs LF) is preserved — verified by test.
+4. **Shell-free Python, POSIX-only shell.** Python paths invoke git with argv lists, never a
+   shell. The commit-msg hook uses only POSIX grep flags (`-E -i`), never `-P` or `\b`.
+   `git log --grep` means no external grep binary is needed for preview/check.
+5. **Push is explicit.** The rewrite is local unless `--push` is given; publication uses
+   `--force-with-lease`; the cache nudge requires `--nudge-cache` and is never automatic.
+6. **filter-repo is a dev tool, not a runtime dep.** The package is stdlib-only; the CLI
+   errors with an install hint when `git-filter-repo` is missing
+   (`uv tool install git-filter-repo`).
+7. **The docs contract.** `scripts/validate-docs.py` (logic rewritten from py-review-skill's
+   `validate-readme.py` pattern, CC-BY-4.0 terms of that repo): README and CONTRIBUTING must
+   list the 4 canonical commands verbatim; ci.yml must run them verbatim (a plain substring
+   check — that is why ci.yml never uses `--no-sync`); required docs exist; internal links
+   resolve.
+
+## 6. Reference URLs
+
+- man page: <https://manpages.debian.org/testing/git-filter-repo/git-filter-repo.1.en.html>
+- filter-repo issue #282 (origin removal), #347 (mirror clone exception)
+- git-filter-branch warning: <https://git-scm.com/docs/git-filter-branch>
+- git log docs: <https://git-scm.com/docs/git-log>
+- GitHub co-authored commits: <https://docs.github.com/en/pull-requests/committing-changes-to-your-project/creating-and-editing-commits/creating-a-commit-with-multiple-authors>
+- GitHub repository API (default_branch): <https://docs.github.com/en/rest/repos/repos>
+- sourcegraph docs-as-code: <https://sourcegraph.com/blog/documentation-as-code>
+- datadef docs-checks-in-ci: <https://datadef.io/guides/en/docs-checks-in-ci>
+- lychee: <https://github.com/lycheeverse/lychee>
+- doc-freshness-checker: <https://github.com/cosmocoder/doc-freshness-checker>
+- Staleguard: <https://github.com/Arthur920/Staleguard>
+- docrot: <https://pkg.go.dev/github.com/andimrob/docrot> (GitHub source 404s since 2026-10; the pkg.go.dev snapshot of v0.1.1 is the durable reference)
+- codocia: <https://docs.rs/codocia>
+- GitLab markdown-link-check component: <https://gitlab.com/gitlab-org/technical-writing/markdown-link-check>
+- declaudify: <https://github.com/ParkerrDev/declaudify>
+- git-attribution: <https://github.com/Londopy/git-attribution>

@@ -1,0 +1,15 @@
+#!/bin/sh
+# Pre-commit gate for ai-repo-sanitize. POSIX sh only, no bashisms.
+# Install with: git config core.hooksPath .githooks
+set -e
+
+echo "=== pre-commit: ruff ==="
+uv run ruff check .
+
+echo "=== pre-commit: type check ==="
+uv run ty check
+
+echo "=== pre-commit: docs contract ==="
+uv run python scripts/validate-docs.py
+
+echo "=== pre-commit: PASS ==="

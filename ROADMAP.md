@@ -1,0 +1,63 @@
+# Roadmap
+
+> Living document. Guarded by [ANTIDRIFT.md](ANTIDRIFT.md): every milestone
+> below names the anti-drift check that keeps it honest, and the
+> code-changes rule applies — a behavior change to `patterns.py`, `cli.py`,
+> or the canonical command set must update this file, `RESEARCH.md`, and
+> `ANTIDRIFT.md` in the same commit.
+>
+> Last reviewed: 2026-10-09 (owner: @CodeSigils)
+
+## How to read this roadmap
+
+Each item states its **goal**, the **anti-drift check** that prevents the
+planned work from silently rotting, and a rough **landing** point. Items with
+no check attached are deliberately excluded or parked — see
+[ANTIDRIFT.md](ANTIDRIFT.md) § Non-goals.
+
+## v0.1 — core flow (current)
+
+Shipped: `check` / `preview` / `rewrite` modes, canonical validation gate,
+`.githooks` + CI, and the guarded documentation set.
+
+In-flight polish for v0.1:
+
+| Item | Goal | Anti-drift check |
+| --- | --- | --- |
+| `tests/test_validate_docs.py` | Test the docs validator itself (check-the-checker; org convention seen in python-project-workflow-skill: `validate-ci.py` + `test-validate-ci.py`) | `scripts/validate-docs.py` stays in the 4-command gate so the validator and its tests cannot drift apart |
+| `CITATION.cff` | Citation metadata; present in 3 of 4 inspected CodeSigils repos | None needed — static file, but keep it listed in `validate-docs.py` required docs if added |
+| `.githooks/pre-push` | Run the canonical gate before push (org uses pre-push in 2 of 4 repos) | Hook lists the same 4 canonical commands, so the substring contract in `validate-docs.py` extends naturally |
+
+## v0.2 — freshness and coverage gates
+
+| Item | Goal | Anti-drift check |
+| --- | --- | --- |
+| Freshness gate in `validate-docs.py` | `Last reviewed: YYYY-MM-DD` + named owner on drift-sensitive docs; hard fail when older than 90 days (docrot-style, datadef §3) | The gate itself lives in the 4-command contract; adding it makes "Last reviewed" checkable instead of advisory |
+| Git-diff doc-coverage warning | CI step warns (does not fail) when a `src/` or `.githooks/` change ships without a matching docs change (datadef §4 Danger rule: "start as warnings; hard fail invites token edits") | Warning text points at `ANTIDRIFT.md` § code-changes rule so the fix is mechanical |
+| Optional: `evals/` + `schemas/` dirs | Org skill repos carry evals; only if we add behavior-parity evals for rewrite | Kept optional; if added, mirror the org's `validate-evals.py`-style gate |
+
+## v0.3 — agent-side drift checks
+
+| Item | Goal | Anti-drift check |
+| --- | --- | --- |
+| Codocia-class `covers` coverage | Markdown docs declare which code symbols they cover; snapshot hashes of covered files; `check --base main` reports changed-code-without-docs-coverage | The checker runs in CI on the weekly schedule next to `verify-urls.py`, and its policy file is agent-readable (codocia.md pattern) |
+| Staleguard-class standing instruction | AGENTS.md gains: "after editing code or docs, run the canonical gate and fix any drift" | Already half-there via AGENTS.md's validation gate; extension makes the re-verification of `RESEARCH`/`ROADMAP`/`ANTIDRIFT` mandatory |
+
+## Non-goals
+
+From [ANTIDRIFT.md](ANTIDRIFT.md) § Non-goals, restated so nobody re-proposes
+them: no Vale prose linting, no static site generator, no MCP servers or
+semantic/ML drift layers, no external link-checker binaries (stdlib
+`verify-urls.py` suffices).
+
+## How to update this file
+
+1. Behavior changes to `patterns.py`, `cli.py`, or the canonical commands:
+   update `RESEARCH.md` (mechanics/decisions), `ANTIDRIFT.md` (layers that
+   defend it), and this file in the **same commit** — the CI doc-coverage
+   warning exists to catch missing updates.
+2. Bump `Last reviewed:` on any substantive edit; the v0.2 freshness gate
+   will make that a hard requirement.
+3. Run `uv run python scripts/validate-docs.py` before finishing any docs
+   change; it is part of the canonical gate in
+   [CONTRIBUTING.md](CONTRIBUTING.md).

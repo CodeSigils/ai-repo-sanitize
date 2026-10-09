@@ -1,0 +1,36 @@
+[project]
+name = "ai-repo-sanitize"
+version = "0.1.0"
+description = "Safely strip AI attribution trailers from git history: preview, rewrite, verify, publish; CI check mode; hook templates."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = []
+
+[project.scripts]
+ai-repo-sanitize = "ai_repo_sanitize.cli:main"
+
+[dependency-groups]
+dev = [
+  "pytest>=8.0",
+  "ruff>=0.6",
+  "ty>=0.0.85",
+  "git-filter-repo>=2.45",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ai_repo_sanitize"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "C4", "RUF"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

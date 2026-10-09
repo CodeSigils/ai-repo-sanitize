@@ -1,0 +1,77 @@
+name: validate
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    tags: ["v*.*.*"]
+    # Docs-only changes never trigger the full matrix; README changes are
+    # covered by pr-open runs and the weekly schedule below.
+    paths: &ci_paths
+      - ".github/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - "src/**"
+      - "tests/**"
+      - "scripts/**"
+      - ".githooks/**"
+  pull_request:
+  schedule:
+    # GitHub can delay or drop scheduled workflows at the start of an hour,
+    # so the run is offset a few minutes in.
+    - cron: "17 9 * * 1" # weekly: Monday 09:17 UTC
+
+concurrency:
+  group: validate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ${{ vars.RUNNER_X86_64 || 'ubuntu-latest' }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c45a2b # v5.3.0
+        with:
+          python-version: "3.14"
+      - uses: astral-sh/setup-uv@0c5e2b8115b80b4c23c5cd1b5a8f1d1e5c2f0d3a # v8.1.0
+        with:
+          version: "0.11.7"
+          enable-cache: true
+      - name: Sync locked dev environment
+        run: uv sync --locked --only-dev
+      - name: Shellcheck hooks
+        run: shellcheck .githooks/pre-commit .githooks/commit-msg
+      - name: Lint
+        run: uv run ruff check .
+      - name: Type check
+        run: uv run ty check
+      - name: Tests
+        run: uv run pytest
+      - name: Docs contract
+        run: uv run python scripts/validate-docs.py
+      - name: External URL check (scheduled only)
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: uv run python scripts/verify-urls.py
+
+  python-compat:
+    runs-on: ${{ vars.RUNNER_X86_64 || 'ubuntu-latest' }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c45a2b # v5.3.0
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Stdlib test runner across versions
+        run: python3 -m unittest discover -s tests
