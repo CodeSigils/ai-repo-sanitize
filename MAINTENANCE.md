@@ -41,7 +41,7 @@ clone you commit from:
 git config core.hooksPath .githooks
 ```
 
-- `.githooks/pre-commit` runs `ruff check .` and the docs validator.
+- `.githooks/pre-commit` runs `ruff check .`, `ty check`, and the docs validator.
 - `.githooks/commit-msg` rejects commit messages that carry AI-attribution
   trailers (see the canonical pattern in `src/ai_repo_sanitize/patterns.py`).
   `--no-verify` is reserved for emergencies and never for routine work.
@@ -61,8 +61,11 @@ Commit `pyproject.toml` and `uv.lock` together.
 ### Weekly URL re-check
 
 ci.yml runs `scripts/verify-urls.py` on the weekly schedule and on manual
-dispatch. It HEAD-checks every external URL found in the documentation set.
-On failure, update the dead links and commit.
+dispatch. It checks every external URL found in the documentation set: HEAD
+by default, a GET fallback for servers that reject HEAD (405/501), a single
+retry for transient network errors, and a small thread pool. Duplicate URLs
+are checked once and reported per document. On failure, update the dead
+links and commit.
 
 ## CI layout
 
@@ -71,9 +74,12 @@ The executable picture of this repository is
 behavior. The workflow validates on every push to `master` and on every pull
 request, and re-checks external URLs on a weekly schedule:
 
-- **quality** — `uv sync --locked --only-dev`, shellcheck the hooks, then the
+- **quality** — `uv sync --locked`, shellcheck the hooks, then the
   canonical gate: `ruff check .`, `ty check`, `pytest`, `validate-docs.py`;
   `verify-urls.py` runs only on schedule or manual dispatch.
+- **Action pins** — the checkout/setup-python/setup-uv SHAs are centralized
+  at the top of ci.yml as YAML anchors (`x-checkout`, `x-setup-python`,
+  `x-setup-uv`); update them in that one place.
 - **python-compat** — the same tests run with the stdlib runner across Python
   3.12, 3.13, and 3.14.
 

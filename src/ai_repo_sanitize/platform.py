@@ -12,11 +12,14 @@ from __future__ import annotations
 
 import dataclasses
 import json
+import os
 import shutil
 import subprocess
 import time
+import urllib.error
 import urllib.request
 from pathlib import Path
+from typing import Any
 
 from .git_utils import git
 
@@ -29,6 +32,7 @@ __all__ = [
 
 _REFRESH_BRANCH = "refresh/sidebar-flush"
 _GH_BASE = "https://api.github.com"
+_GH_API_VERSION = "2022-11-28"
 
 
 @dataclasses.dataclass(frozen=True)
@@ -44,19 +48,55 @@ def gh_available() -> bool:
     return shutil.which("gh") is not None
 
 
+def resolve_token() -> str | None:
+    """Return a GitHub token from the environment, if any.
+
+    Never printed or stored; lets CI authenticate via the automatic
+    GITHUB_TOKEN. None keeps the caller on the anonymous, rate-limited path.
+    """
+    token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
+    return token or None
+
+
+def _api_request(url: str, token: str | None) -> urllib.request.Request:
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "ai-repo-sanitize",
+        "X-GitHub-Api-Version": _GH_API_VERSION,
+    }
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    return urllib.request.Request(url, headers=headers)
+
+
+def _get_json(url: str, token: str | None) -> Any:
+    """GET *url* and return the decoded JSON; retry once on transient errors.
+
+    HTTP errors are server decisions and are not retried (they will not
+    resolve in a second); network failures get a single retry.
+    """
+    request = _api_request(url, token)
+    attempts = 0
+    while True:
+        try:
+            with urllib.request.urlopen(request, timeout=30) as response:
+                return json.load(response)
+        except urllib.error.HTTPError:
+            raise
+        except (urllib.error.URLError, TimeoutError, OSError):
+            attempts += 1
+            if attempts > 1:
+                raise
+
+
 def contributors_via_api(owner: str, repo: str) -> ContributorsSnapshot:
     """Query the public ``/repos/{owner}/{repo}/contributors`` endpoint.
 
-    Auth-less and therefore rate-limited; good enough for a post-push sanity
-    print. Raises :class:`urllib.error.URLError` on network problems.
+    Uses a token when one is available (CI's GITHUB_TOKEN) and falls back to
+    the auth-less, rate-limited path otherwise. Good enough for a post-push
+    sanity print. Raises :class:`urllib.error.URLError` on network problems.
     """
-    url = f"{_GH_BASE}/repos/{owner}/{repo}/contributors"
-    request = urllib.request.Request(
-        url,
-        headers={"Accept": "application/vnd.github+json", "User-Agent": "ai-repo-sanitize"},
-    )
-    with urllib.request.urlopen(request, timeout=30) as response:
-        data = json.load(response)
+    data = _get_json(f"{_GH_BASE}/repos/{owner}/{repo}/contributors", resolve_token())
     logins = tuple(item["login"] for item in data if isinstance(item, dict) and item.get("login"))
     return ContributorsSnapshot(owner=owner, repo=repo, logins=logins)
 

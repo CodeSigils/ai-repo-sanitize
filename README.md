@@ -22,9 +22,8 @@ what this tool automates, with the safety gates made mandatory instead of
 optional.
 
 - Article: [When an AI Agent Signs Your Commits](https://codesigils.github.io/AI/Agent-Work/when-an-ai-signs-your-commits/#the-whole-sequence-as-an-example)
-- Local copy of the article's markdown: `~/labs/zensical-test/docs/AI/Agent-Work/when-an-ai-signs-your-commits.md`
 - The removal pattern this tool applies is the single source of truth in
-  `src/ai_repo_sanitize/patterns.py`, mirrored by the article's example.
+  [`src/ai_repo_sanitize/patterns.py`](src/ai_repo_sanitize/patterns.py), mirrored by the article's example.
 
 ## Modes
 
@@ -34,7 +33,7 @@ optional.
 | `preview` | Lists the commits whose messages match the drop pattern | Read-only |
 | `rewrite` | Rewrites messages only (filter-repo), verifies the tree is unchanged, then optionally pushes | Requires `--push` to touch the remote |
 
-What gets removed (see `src/ai_repo_sanitize/patterns.py` — the single source
+What gets removed (see [`src/ai_repo_sanitize/patterns.py`](src/ai_repo_sanitize/patterns.py) — the single source
 of truth):
 
 - `Co-authored-by:` trailers that name a known agent
@@ -52,7 +51,7 @@ uv tool install .            # or: pip install .
 uv tool install git-filter-repo   # external tool, used only by `rewrite`
 ```
 
-`git-filter-repo` is deliberately a dev-tool dependency, not a runtime one:
+[git-filter-repo](https://github.com/newren/git-filter-repo) is deliberately a dev-tool dependency, not a runtime one:
 the rewrite path fails with an install hint if it is missing.
 
 ## Quickstart
@@ -67,7 +66,7 @@ ai-repo-sanitize rewrite --path . --remote-url ... --backup-dir ... --push
 ```
 
 Run `ai-repo-sanitize --help` for every flag (including `--nudge-cache`, the
-opt-in GitHub sidebar-cache refresh, documented in RESEARCH.md).
+opt-in GitHub sidebar-cache refresh, documented in [RESEARCH.md](RESEARCH.md)).
 
 ## Hooks
 
@@ -75,7 +74,7 @@ opt-in GitHub sidebar-cache refresh, documented in RESEARCH.md).
 git config core.hooksPath .githooks
 ```
 
-- `pre-commit` runs the fast gates (ruff, docs validator).
+- `pre-commit` runs the fast gates (ruff, ty, docs validator).
 - `commit-msg` rejects AI-attribution trailers at commit time. Use
   `--no-verify` only in a documented emergency.
 
@@ -90,7 +89,7 @@ uv run pytest
 uv run python scripts/validate-docs.py
 ```
 
-`validate-docs.py` is the drift guard: it fails when README or CONTRIBUTING
+[`scripts/validate-docs.py`](scripts/validate-docs.py) is the drift guard: it fails when README or CONTRIBUTING
 stop listing these commands, when the required docs disappear, when ci.yml or
 the pre-commit hook drift from the canonical commands, or when an internal
 link breaks. If a command above stops being the truth, the repository tells
@@ -104,7 +103,7 @@ you instead of the docs silently rotting.
 | `1` | Attribution found, a safety gate stopped the run, or an operation failed |
 | `2` | Usage error (unknown subcommand or bad flags — argparse's default) |
 
-`scripts/validate-docs.py` and `scripts/verify-urls.py` also exit 0/1.
+[`scripts/validate-docs.py`](scripts/validate-docs.py) and [`scripts/verify-urls.py`](scripts/verify-urls.py) also exit 0/1.
 
 ## Architecture
 
@@ -115,7 +114,7 @@ src/ai_repo_sanitize/
   verify.py      the two invariants: same tree, no attribution remains
   rewrite.py     git-filter-repo wrapper; callback generated from patterns.py
   publish.py     re-add origin, fetch, --force-with-lease push
-  platform.py    GitHub contributors snapshot + the opt-in cache nudge
+  platform.py    token-aware GitHub contributors snapshot + opt-in cache nudge
   pipeline.py    run_check / preview / run_rewrite — every mode shares the checks
   cli.py         argparse front end; exit codes 0/1/2
 ```
