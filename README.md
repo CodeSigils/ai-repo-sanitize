@@ -34,7 +34,8 @@ optional.
   against a local bare remote; no code path ships without a test.
 - **Research-based** — every mechanism traces to a RESEARCH.md decision and
   an empirical verification: the silent parser bug, the bad action SHAs, the
-  missing PYTHONPATH, the remote-URL parsing bug, the YAML-anchor failure.
+  missing PYTHONPATH, the remote-URL parsing bug, the YAML-anchor failure, the
+  URL-checker backtick capture (RESEARCH.md §2).
 - **Check-the-checker** — the docs validator, the freshness gate, the
   doc-coverage checker, and the doc-claims checker are themselves
   unit-tested, so the guards cannot rot.

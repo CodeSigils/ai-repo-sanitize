@@ -56,6 +56,12 @@ this file when `patterns.py`, `cli.py`, or the canonical validation commands cha
   for a `/tmp/...` remote — a doomed API call and a misleading 404 warning. Fixed 2026-10-09
   during the test-hardening pass and locked by `tests/test_platform.py`.
 
+- **URL-checker backtick capture** — the naive `https?://[^\s)\]}>]+`
+  extraction captured a closing markdown code-span backtick into the URL,
+  producing a false `404` failure (first observed 2026-10-09). Fix: strip the
+  backtick with the punctuation set — `url.rstrip(".,;:!?`")`. No documented
+  URL contains a real trailing backtick, so the strip is safe.
+
 ## 3. Anti-drift literature (2026)
 
 | Source | Finding adopted | Decision |
