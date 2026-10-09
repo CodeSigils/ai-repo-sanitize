@@ -29,9 +29,10 @@ optional.
 
 ## Design principles
 
-- **Tested, not trusted** — the test suite runs on every push and pull
-  request across Python 3.10-3.14, including an end-to-end rewrite exercised
-  against a local bare remote; no code path ships without a test.
+- **Tested, not trusted** — the test suite runs on every push to `master` and
+  every pull request across Python 3.10-3.14, including an end-to-end rewrite
+  exercised against a local bare remote. A tag release repeats the canonical
+  gate before publishing, and only accepts a tag reachable from `master`.
 - **Research-based** — every mechanism traces to a RESEARCH.md decision and
   an empirical verification: the silent parser bug, the bad action SHAs, the
   missing PYTHONPATH, the remote-URL parsing bug, the YAML-anchor failure, the

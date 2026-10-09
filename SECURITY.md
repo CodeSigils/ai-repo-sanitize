@@ -39,10 +39,12 @@ report against the pattern set — and a test change is the fix.
 
 ## Commit and release integrity
 
-- Releases are tagged `v*.*.*` from `master`.
-- CI (`validate` workflow) runs the canonical gate on every push and pull
-  request; scheduled runs also re-check external URLs documented in the
-  repository.
+- Releases require a `v*.*.*` tag whose commit is reachable from `master`; the
+  release workflow reruns the canonical gate before it receives write
+  permission to publish.
+- CI (`validate` workflow) runs the canonical gate on every push to `master`,
+  tag push, and pull request; scheduled runs also re-check external URLs
+  documented in the repository.
 - No maintainer commit carries an AI-attribution trailer; the
   `.githooks/commit-msg` hook rejects them on every clone that installed the
   hooks.

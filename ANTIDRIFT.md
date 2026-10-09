@@ -23,7 +23,7 @@ re-review a scheduled, named duty for the rest.
 | 0. Hooks | `.githooks/commit-msg` (attribution patterns), `.githooks/pre-commit` (ruff + docs validator) | bad commit messages and doc regressions before they enter history |
 | 1. Contract | `scripts/validate-docs.py`: README + CONTRIBUTING must list the 4 canonical commands verbatim; `ci.yml` must run them verbatim; required docs exist; internal links resolve | doc/command drift, missing or dead-linked docs |
 | 2. Canonical gate | `uv run ty check` / `uv run ruff check .` / `uv run pytest` / `uv run python scripts/validate-docs.py` — referenced in AGENTS.md, CONTRIBUTING.md, MAINTENANCE.md and enforced in CI | any change that breaks the project's own contract |
-| 3. CI | `ci.yml`: full gate on every push and PR (PRs never use paths filters); weekly scheduled job runs `scripts/verify-urls.py` (external links) | stale external references, third-party rot |
+| 3. CI | `ci.yml`: full gate on every push to `master`, tag push, and PR; weekly scheduled job runs `scripts/verify-urls.py` (external links). Its doc-coverage warning compares the triggering push/PR range rather than the checked-out branch tip. | stale external references, third-party rot |
 | 4. Single source of truth | `src/ai_repo_sanitize/patterns.py` defines the attribution pattern once; check, preview, rewrite and the hook all derive from it | the check/rewrite/hook disagreeing with each other |
 
 The two strongest rules, borrowed from CodeSigils practice and the docs-as-code literature:

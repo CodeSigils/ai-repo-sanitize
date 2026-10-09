@@ -74,9 +74,30 @@ this file when `patterns.py`, `cli.py`, or the canonical validation commands cha
     re-verify on upgrades.
   - Tag pushes re-run the full ci.yml in practice even when the changed
     files would be filtered out by `paths`: the v0.1.0 annotated tag push
-    fired the whole validate workflow (run 37927693277, green). We
-    documented the opposite in MAINTENANCE.md first, then corrected it —
-    trust the observation, not the assumption.
+    fired the whole validate workflow (run 37927693277, green). Workflows
+    run independently, however, so a successful validation run cannot gate a
+    same-event release job. The release workflow therefore owns its own
+    canonical-gate preflight and checks that the tag commit is reachable from
+    `master` before granting the publishing job `contents: write`.
+  - **Workflow scope, ordering, and privilege** — GitHub documents that a
+    push using both branch and path filters must satisfy both, so a path filter
+    could suppress the documentation contract. The validation workflow now
+    runs for every `master` push. GitHub also documents `needs` as a job
+    dependency within one workflow; consequently, the release workflow owns a
+    `verify-release` job and makes the write-permitted publisher depend on it,
+    instead of assuming the separately triggered validation workflow gates a
+    release. The workflow defaults to `contents: read` and elevates only the
+    publisher to `contents: write`. Finally, `git merge-base --is-ancestor`
+    has the exact zero/non-zero ancestry contract needed to reject a tag that
+    is not reachable from `master`.
+  - **Branch-policy recommendation (future evaluation)** — retain the current
+    deletion and force-push protections, then require pull requests, the
+    uniquely named quality and compatibility checks, and an up-to-date branch.
+    GitHub rulesets support those controls and a "for pull requests only"
+    bypass, which preserves an auditable PR path without granting a direct
+    push exception. Require one approval only when a second maintainer can
+    supply it; a sole maintainer would otherwise deadlock. This is a
+    maintainer-governance decision, not a workflow change.
 
 ## 3. Anti-drift literature (2026)
 
@@ -182,6 +203,11 @@ absent); awesome-agent-trust has no hooks at all.
 - GitHub Actions events that trigger workflows (push): <https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows#push>
 - GitHub token security (GITHUB_TOKEN): <https://docs.github.com/en/actions/concepts/security/github_token>
 - GitHub Actions workflow syntax (permissions): <https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax>
+- GitHub Actions events and branch/path filter behavior: <https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows>
+- GitHub Actions job dependencies (`needs`): <https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#jobsjob_idneeds>
+- Git ancestry checks (`merge-base --is-ancestor`): <https://git-scm.com/docs/git-merge-base>
+- GitHub ruleset controls and required checks: <https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/available-rules-for-rulesets>
+- GitHub ruleset bypass modes: <https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/creating-rulesets-for-a-repository>
 - GitHub Actions choosing when your workflow runs: <https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run>
 - GitHub Dependabot grouped version updates (PR optimization): <https://docs.github.com/en/code-security/tutorials/secure-your-dependencies/optimizing-pr-creation-version-updates>
 - Dependabot configuration options reference: <https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference>

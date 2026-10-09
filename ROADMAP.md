@@ -36,10 +36,12 @@ Completed for v0.1 (2026-10-09):
   `validate-docs.py` `findings()` over temporary fixtures (missing docs, command drift, broken
   links, freshness states) via `--root`/`--today`/`--review-window`. Org convention borrowed
   from python-project-workflow-skill (`validate-ci.py` + `test-validate-ci.py`).
-- **Release machinery** — `.github/workflows/release.yml` syncs, builds distributions
-  (`uv build`), and creates the GitHub Release on any `v*.*.*` tag push
-  (`gh release create --generate-notes`). First annotated tag: `v0.1.0` (2026-10-09).
-  SemVer: minor bump on the next behavior change; bugfix-only hardening stays a patch.
+- **Release machinery** — `.github/workflows/release.yml` accepts a `v*.*.*`
+  tag only when its commit is reachable from `master`, reruns the canonical
+  gate, then builds distributions (`uv build`) and creates the GitHub Release
+  (`gh release create --generate-notes`). First annotated tag: `v0.1.0`
+  (2026-10-09). SemVer: minor bump on the next behavior change; bugfix-only
+  hardening stays a patch.
 - **Citation metadata** — `CITATION.cff` (org convention: present in 3 of 4 inspected
   CodeSigils repos), mirroring the org shape (cff-version 1.2.0, family-names CodeSigils,
   license MIT, type software, repository-code https://github.com/CodeSigils/ai-repo-sanitize).
@@ -62,9 +64,10 @@ Completed for v0.2 (2026-10-09):
   false-fail the internal-link check. Balanced-parens destinations remain a
   documented limitation (RESEARCH.md §2).
 - **Doc-coverage WARN** — `scripts/check-doc-coverage.py` warns (never fails)
-  when a code-path change ships without a matching docs change (datadef
-  warn-not-fail: "start as warnings; hard fail invites token edits"); the
-  warning names the changed paths and points at ANTIDRIFT.md's code-changes rule.
+  when a code-path change ships without a matching docs change, using the
+  triggering push/PR's exact before-and-after range (datadef warn-not-fail:
+  "start as warnings; hard fail invites token edits"); the warning names the
+  changed paths and points at ANTIDRIFT.md's code-changes rule.
 - **Dependency freshness** — Dependabot enabled 2026-10-09: weekly grouped uv
   + GitHub Actions updates per the org research note; PRs run the canonical
   gate; merged by maintainers; no auto-merge.
@@ -95,6 +98,22 @@ Completed for v0.2 (2026-10-09):
 
 ## Next (queued 2026-10-09)
 
+- **Behavior-completeness contract** — replace the aspirational claim that every
+  code path has a test with a reviewed, machine-checked inventory of public
+  command scenarios and rewrite safety invariants. First define stable scenario
+  IDs for `check`, `preview`, and `rewrite`, map each to an observable test,
+  and add a CI checker that fails when a required scenario loses its mapping.
+  Do not adopt a blanket line-coverage target: a percentage cannot prove the
+  backup, unchanged-tree, residual-scan, or explicit-push guarantees.
+- **Branch-protection policy review** — the active `protect-master` ruleset
+  blocks deletion and force-pushes but still permits ordinary direct pushes.
+  Recommended baseline: require a pull request and the uniquely named
+  `quality` plus `python-compat (3.10)` through `python-compat (3.14)` checks,
+  require the branch to be current, and give any maintainer bypass only
+  "for pull requests only." Require one approval when a second maintainer is
+  available; a sole maintainer should retain PR-only auditability without a
+  self-review deadlock. Confirm the owner, reviewer, and bypass policy before
+  changing that external configuration.
 - **Real-world verification session** — two throwaway-repository test legs,
   planned for the next working day:
   1. contributor recognition — run `check` over commits whose co-authors come

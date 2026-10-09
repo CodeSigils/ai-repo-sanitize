@@ -109,14 +109,13 @@ Releases are tag-driven and mostly automatic:
 1. From `master` with the canonical gate green, create an annotated tag:
    `git tag -a vX.Y.Z -m "..."` and push it: `git push origin vX.Y.Z`.
 2. The tag push fires `.github/workflows/release.yml`
-   (`on: push tags: v*.*.*`), which syncs the locked environment, builds
-   distributions with `uv build`, and creates the GitHub Release from
-   `dist/*` with auto-generated notes.
-3. The tag push re-runs `.github/workflows/ci.yml` as well — path filters do
-   not block tag pushes in practice (verified 2026-10-09: the v0.1.0 tag push
-   ran the full validate workflow to success). The canonical gate therefore
-   runs twice: once on the master push and once on the tag; both must stay
-   green.
+   (`on: push tags: v*.*.*`), first verifies that the tagged commit is
+   reachable from `master`, then reruns the canonical gate before the
+   write-permitted publishing job builds distributions with `uv build` and
+   creates the GitHub Release from `dist/*` with auto-generated notes.
+3. The tag push also re-runs `.github/workflows/ci.yml`; its result is useful
+   independent evidence, while the release workflow's preflight is the
+   publishing gate.
 4. Refine the release notes afterwards with `gh release edit vX.Y.Z` (or the
    web UI).
 
