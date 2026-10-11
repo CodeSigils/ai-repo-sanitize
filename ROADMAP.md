@@ -136,6 +136,24 @@ Completed for v0.4 (2026-10-09 – 2026-10-11):
 Anti-drift check: the checker lives under `scripts/`, its behavior is locked in
 `tests/test_check_pr_hygiene.py`, and the workflow is actionlint-validated.
 
+## v0.5 — downstream consumption
+
+Completed for v0.5 (2026-10-11):
+
+- **One-step downstream check** — documented and exercised for consumers: a
+  downstream workflow runs the entire read-only scan as a single
+  `uvx --from git+https://github.com/CodeSigils/ai-repo-sanitize@<version|sha> ai-repo-sanitize check --path .`
+  step under `astral-sh/setup-uv`, with the bare exit code as the gate
+  (0 clean, 1 found) and `--format json` for machine-readable evidence.
+  `.github/workflows/downstream-check.yml` proves the shape on fresh runners
+  against disposable clean and attributed repositories on every push. Custom
+  composite actions are deferred until a PyPI release exists. Recorded in
+  `RESEARCH.md` §7.
+
+Anti-drift check: the downstream-check workflow is the check — it runs the
+documented one-step command on every push and fails if the exit-code contract
+breaks.
+
 ## Next (queued 2026-10-09)
 
 - **Behavior-completeness contract** — replace the aspirational claim that every
@@ -163,8 +181,6 @@ Anti-drift check: the checker lives under `scripts/`, its behavior is locked in
 - **PyPI publishing** — add a tag-triggered `uv publish` step to release.yml
   so `uv tool install ai-repo-sanitize` works from PyPI; research first
   (RESEARCH.md §7), trusted publishing preferred over long-lived tokens.
-- **Third-party CI integration** — document and exercise the one-step
-  `ai-repo-sanitize check` usage in downstream CI (RESEARCH.md §7 first).
 - **Low-value fillers (back-burner)** — optional `evals/` + `schemas/` dirs
   (org convention), issue templates, PyPI README polish (only after the PyPI
   publish step exists).

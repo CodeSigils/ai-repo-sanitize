@@ -119,6 +119,42 @@ only stdout; the existing exit-code contract is unchanged. It does not create
 report files or alter any repository. Use the human-readable default for
 interactive work.
 
+## Use in downstream CI
+
+A downstream workflow runs the whole read-only scan as one step — no persistent
+install, no git-filter-repo, and a bare exit code that fails the job when
+history carries an AI attribution trailer. `uvx` builds and runs the tool in an
+isolated environment without installing anything:
+
+```yaml
+steps:
+  - uses: actions/checkout@<full-sha>            # the repository being checked
+  - uses: astral-sh/setup-uv@<full-sha>          # official uv installer; pin at v10
+    with:
+      version: "0.11.7"
+  - name: Fail on AI attribution trailers
+    run: uvx --from git+https://github.com/CodeSigils/ai-repo-sanitize@v0.1.0 ai-repo-sanitize check --path .
+```
+
+Pin both actions to the reviewed commits — this repository uses full-SHA pins
+with a `# vX.Y.Z` comment, as in [ci.yml](.github/workflows/ci.yml) — and pin
+the tool instead of tracking `master`: `@v0.1.0` is a released tag, and a full
+40-character SHA works too. The exit code is the contract: `check` returns 0 on
+clean history and 1 when attribution is found, so the bare step gates the job.
+Add `--format json` in a later step if you want machine-readable evidence for a
+report. For a persistent install instead of the ephemeral `uvx` run:
+
+```bash
+uv tool install git+https://github.com/CodeSigils/ai-repo-sanitize@v0.1.0
+export PATH="$PATH:$(uv tool dir --bin)"
+ai-repo-sanitize check --path .
+```
+
+This repository exercises the exact one-step flow in
+[`downstream-check.yml`](.github/workflows/downstream-check.yml) on fresh
+runners against disposable clean and attributed repositories, so the documented
+shape is verified with every push, not just documented.
+
 ## Hooks
 
 This repository keeps its git hooks in `.githooks/`. They are opt-in,

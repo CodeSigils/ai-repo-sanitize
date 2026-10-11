@@ -283,6 +283,16 @@ absent); awesome-agent-trust has no hooks at all.
     which prompted the all-ref change; mandating a count pair for every
     repository would record numbers the evidence does not need.
 
+19. **A downstream consumer runs `check` as one isolated step** — the ephemeral
+    `uvx --from git+https://github.com/CodeSigils/ai-repo-sanitize@<version|sha> ai-repo-sanitize check`
+    form installs nothing persistently and needs no git-filter-repo, so the
+    bare exit code (0 clean / 1 found) gates the downstream job directly. A
+    standalone step, not a custom composite action, preserves the read-only
+    boundary: a consumer who only asked for `check` receives no rewrite
+    capability alongside it. Recorded 2026-10-11;
+    `.github/workflows/downstream-check.yml` exercises the shape on every push
+    against disposable clean and attributed repositories.
+
 ## 6. Reference URLs
 
 - man page: <https://manpages.debian.org/testing/git-filter-repo/git-filter-repo.1.en.html>
@@ -325,6 +335,9 @@ absent); awesome-agent-trust has no hooks at all.
 - Managing aging Dependabot pull requests: <https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/manage-your-dependency-security/manage-dependabot-prs>
 - Native pull-request auto-merge: <https://docs.github.com/en/pull-requests/how-tos/merge-and-close-pull-requests/automatically-merging-a-pull-request>
 - Dependabot automation and token constraints: <https://docs.github.com/en/code-security/tutorials/secure-your-dependencies/automate-dependabot-with-actions>
+- uv tools guide (`uvx` = `uv tool run`; `--from` sources): <https://docs.astral.sh/uv/guides/tools/>
+- uv CLI reference (tool commands): <https://docs.astral.sh/uv/reference/cli/>
+- astral-sh/setup-uv: <https://github.com/astral-sh/setup-uv>
 
 ## 7. Future research (queued 2026-10-09)
 
@@ -336,11 +349,6 @@ land *before* implementation so the change is informed, not improvised.
   `uv tool install ai-repo-sanitize` resolves from PyPI rather than from the
   repository. Reference:
   <https://docs.astral.sh/uv/guides/publish/>.
-- **Third-party CI integration** — decide how downstream repositories best run
-  `ai-repo-sanitize check` in their own workflows (a plain two-line step, a
-  pinned-SHA action, or a composite action) and which shape keeps the tool's
-  own gates honest when it inspects foreign history. Reference:
-  <https://docs.github.com/en/actions/sharing-automations/creating-actions/about-custom-actions>.
 - **Real-history fixture testing** — completed 2026-10-11. The observed
   [awesome-agent-trust report](reports/awesome-agent-trust-sanitizer-check.md)
   records the contributor-preservation fixture and its matching regression
@@ -352,3 +360,13 @@ land *before* implementation so the change is informed, not improvised.
   name-pattern behavior, not GitHub identity verification: a legitimate
   co-author whose trailer contains a configured agent name would still be
   flagged.
+- **Third-party CI integration** — completed 2026-10-11. The downstream shape
+  is the one-step `uvx --from git+https://github.com/CodeSigils/ai-repo-sanitize@<version|sha> ai-repo-sanitize check`
+  under setup-uv: a plain step, not a custom action, so a consumer who asked
+  only for `check` receives no rewrite capability with it. The bare exit code
+  (0 clean / 1 found) is the gate and `--format json` stays available for
+  machine-readable evidence. `.github/workflows/downstream-check.yml` exercises
+  the shape on every push against disposable clean and attributed
+  repositories. Custom composite actions re-enter consideration only after a
+  PyPI release exists. References: <https://docs.astral.sh/uv/guides/tools/>,
+  <https://github.com/astral-sh/setup-uv>.

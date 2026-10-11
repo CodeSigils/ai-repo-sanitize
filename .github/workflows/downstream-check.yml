@@ -1,0 +1,84 @@
+name: downstream-check
+
+# Exercises the documented one-step consumption flow on fresh runners:
+# setup-uv plus a single `uvx --from git+https://...@<sha> ai-repo-sanitize check`
+# step against disposable clean and attributed repositories. This is this
+# repository's own proof that the README "Use in downstream CI" section stays
+# true: a downstream user needs no persistent install, no git-filter-repo, and
+# the bare exit-code contract (0 = clean, 1 = attribution found) fails the job.
+#
+# This is intentionally not a reusable action: consumers copy the step shape.
+# Action pins follow the ci.yml convention (full SHA with a `# vX.Y.Z` comment).
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: downstream-check-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  exercise-one-step-check:
+    name: Exercise one-step downstream check
+    runs-on: ${{ vars.RUNNER_X86_64 || 'ubuntu-latest' }}
+    timeout-minutes: 10
+    steps:
+      - name: Install uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: "0.11.7"
+          enable-cache: true
+
+      - name: Run the one-step check against disposable repositories
+        shell: bash
+        env:
+          TOOL_SPEC: git+https://github.com/CodeSigils/ai-repo-sanitize@${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          # Disposable fixtures: one clean history, one with an AI attribution trailer.
+          make_fixture() { # $1 = clean|attributed; echoes the repo path
+            local dir
+            dir="$(mktemp -d)"
+            git init -q -b main "$dir"
+            git -C "$dir" config user.email ci@example.com
+            git -C "$dir" config user.name CI
+            git -C "$dir" commit -q --allow-empty -m "docs: main"
+            if [ "$1" = attributed ]; then
+              git -C "$dir" commit -q --allow-empty -m "docs: attributed" \
+                -m "Co-authored-by: Claude <noreply@anthropic.com>"
+            fi
+            printf '%s' "$dir"
+          }
+          clean="$(make_fixture clean)"
+          attributed="$(make_fixture attributed)"
+          trap 'rm -rf "$clean" "$attributed"' EXIT
+
+          # The one-step documented in README "Use in downstream CI".
+          one_step_check() {
+            uvx --from "$TOOL_SPEC" ai-repo-sanitize check --path "$1"
+          }
+
+          one_step_check "$clean" # must exit 0
+
+          set +e
+          one_step_check "$attributed" >/tmp/downstream-attr.out 2>&1
+          attr_rc=$?
+          set -e
+          test "$attr_rc" -eq 1 || {
+            cat /tmp/downstream-attr.out
+            echo "expected exit 1 for attributed history, got $attr_rc" >&2
+            exit 1
+          }
+
+          # The same one step accepts --format json for machine-readable evidence.
+          uvx --from "$TOOL_SPEC" ai-repo-sanitize check --path "$attributed" --format json |
+            python3 -c 'import json, sys; p = json.load(sys.stdin); assert p["command"] == "check"; assert p["scope"] == "all_refs"; assert p["schema_version"] == 1; assert p["scanned_commit_count"] == 2 and len(p["offending_commits"]) == 1'
+
+          echo "downstream one-step check verified: clean exits 0, attributed exits 1 with JSON evidence"
