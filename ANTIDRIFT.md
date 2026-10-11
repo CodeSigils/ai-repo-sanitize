@@ -1,6 +1,6 @@
 # Anti-Drift Strategy (ANTIDRIFT.md)
 
-Last reviewed: 2026-10-09. Re-verify per the [code-changes rule](#the-code-changes-rule): when
+Last reviewed: 2026-10-11. Re-verify per the [code-changes rule](#the-code-changes-rule): when
 `src/ai_repo_sanitize/patterns.py`, `src/ai_repo_sanitize/cli.py`, or the canonical validation
 commands change, re-read this file and `RESEARCH.md` and update anything stale in the same commit.
 
@@ -67,6 +67,10 @@ a standing, mechanical rule (docrot's `code_changes` strategy; codocia's `covers
   triggers the same re-verification.
 - CI warns (does not fail) when a change under `src/` or `scripts/` has no matching change under
   `docs/` or root `*.md` files — warnings first; a hard fail invites token edits (datadef).
+- External research is a documentation input: when a web search, official documentation, or
+  another external source informs a decision or recommendation, record the finding and its
+  source URL in `RESEARCH.md` in the same change. A recommendation whose source lives only in a
+  chat or a command history is not reviewable and cannot be called evidence-based.
 
 ## 6. Freshness metadata (enforced)
 

@@ -67,6 +67,11 @@ Interactive version with recommendations: `CONTRIBUTING.md`.
   empirical findings. When either conflicts with an inference, preference, or
   speculation, the documented evidence takes priority; identify any remaining
   uncertainty instead of presenting it as a conclusion.
+- Record external research that supports a decision. When a web search,
+  official documentation, or another external source informs a decision or
+  recommendation, add the finding and its source URL to `RESEARCH.md` in the
+  same change. Until the source is recorded the recommendation is not
+  evidence-based; keep the `RESEARCH.md` reference list current.
 
 ## Git and PR hygiene
 

@@ -290,6 +290,7 @@ absent); awesome-agent-trust has no hooks at all.
 - git-filter-branch warning: <https://git-scm.com/docs/git-filter-branch>
 - git log docs: <https://git-scm.com/docs/git-log>
 - git log `--all` scope: <https://git-scm.com/docs/git-log#Documentation/git-log.txt---all>
+- git rev-list `--all` definition: <https://git-scm.com/docs/git-rev-list#Documentation/git-rev-list.txt---all>
 - GitHub co-authored commits: <https://docs.github.com/en/pull-requests/committing-changes-to-your-project/creating-and-editing-commits/creating-a-commit-with-multiple-authors>
 - GitHub repository API (default_branch): <https://docs.github.com/en/rest/repos/repos>
 - sourcegraph docs-as-code: <https://sourcegraph.com/blog/documentation-as-code>
