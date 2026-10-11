@@ -64,6 +64,12 @@ uv run ty check && uv run ruff check . && uv run pytest
 
 Commit `pyproject.toml` and `uv.lock` together.
 
+`git-filter-repo` belongs in that development group because the end-to-end
+rewrite test and CI quality environment need it. It remains outside normal
+package installation: `check`, `preview`, and `hook` are stdlib-only, while
+`rewrite` requires the separately installed external executable. This keeps
+read-only users from receiving a history-rewrite tool they do not need.
+
 Dependabot proposes grouped weekly updates for the uv toolchain and GitHub
 Actions per `.github/dependabot.yml`; merge its PRs only after the canonical
 gate passes. The two-PR cap bounds review load, but it is not a freshness

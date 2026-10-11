@@ -65,12 +65,18 @@ Only the matching lines are dropped; subjects, bodies, and line-ending style
 ## Install
 
 ```bash
-uv tool install .            # or: pip install .
-uv tool install git-filter-repo   # external tool, used only by `rewrite`
+uv tool install .                 # or: pip install .
+uv tool install git-filter-repo   # only if you will use `rewrite`
 ```
 
-[git-filter-repo](https://github.com/newren/git-filter-repo) is deliberately a dev-tool dependency, not a runtime one:
-the rewrite path fails with an install hint if it is missing.
+The sanitizer's runtime is stdlib-only: `check`, `preview`, and `hook` do not
+need [git-filter-repo](https://github.com/newren/git-filter-repo).
+`rewrite` delegates its history rewrite to that external executable, so it is
+the supported rewrite mechanism and fails with an install hint when absent.
+It is intentionally outside the package's runtime dependencies, so read-only
+users do not receive a history-rewrite tool unnecessarily. It is included in
+the development dependency group for the end-to-end rewrite test and CI quality
+environment.
 
 ## Quickstart
 
