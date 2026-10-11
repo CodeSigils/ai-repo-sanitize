@@ -60,7 +60,9 @@ Interactive version with recommendations: `CONTRIBUTING.md`.
   the read-only temporary-clone procedure in `MAINTENANCE.md`; record each
   observation as a dated report with a recommendation, link it from
   `RESEARCH.md`, and never run rewrite or push commands during evidence
-  collection.
+  collection. Prefer `check`/`preview --format json` as raw evidence for an
+  automated report, but keep the reviewed Markdown report as the durable
+  decision record.
 - Base recommendations on primary official documentation and recorded
   empirical findings. When either conflicts with an inference, preference, or
   speculation, the documented evidence takes priority; identify any remaining

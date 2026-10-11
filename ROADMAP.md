@@ -6,7 +6,7 @@
 > or the canonical command set must update this file, `RESEARCH.md`, and
 > `ANTIDRIFT.md` in the same commit.
 >
-> Last reviewed: 2026-10-09 (owner: @CodeSigils)
+> Last reviewed: 2026-10-11 (owner: @CodeSigils)
 
 ## How to read this roadmap
 
@@ -118,6 +118,10 @@ Completed for v0.4 (2026-10-09):
   manual `pr readiness` workflow inspect one PR immediately before a requested
   merge. They are read-only and fail for stale merge conditions; approval is
   optional until the maintainer branch-policy decision is made.
+- **Structured read-only evidence** — `check` and `preview` accept
+  `--format json`, retaining their exit codes and all-ref scope. The CLI emits
+  raw evidence only; maintainers and agents turn it into reviewed `reports/`
+  entries using the MAINTENANCE.md procedure.
 
 Anti-drift check: the checker lives under `scripts/`, its behavior is locked in
 `tests/test_check_pr_hygiene.py`, and the workflow is actionlint-validated.

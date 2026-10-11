@@ -77,6 +77,8 @@ the rewrite path fails with an install hint if it is missing.
 ```bash
 ai-repo-sanitize check --path .        # exit 1 if attribution is found
 ai-repo-sanitize preview --path .      # list matching commits, subject only
+ai-repo-sanitize check --path . --format json  # structured read-only result
+ai-repo-sanitize preview --path . --format json
 ai-repo-sanitize rewrite --path . \
   --remote-url your-owner/your-repo --backup-dir /tmp/copy \
   --branch master                       # rewrite messages, push nothing
@@ -85,6 +87,13 @@ ai-repo-sanitize rewrite --path . --remote-url ... --backup-dir ... --push
 
 Run `ai-repo-sanitize --help` for every flag (including `--nudge-cache`, the
 opt-in GitHub sidebar-cache refresh, documented in [RESEARCH.md](RESEARCH.md)).
+
+Only the read-only `check` and `preview` commands accept `--format json` for
+agent and automation use; `rewrite` intentionally remains text-only. The
+schema is versioned (`schema_version: 1`), names the command and `all_refs`
+scope, and includes the scanned or matching commits. JSON changes only stdout;
+the existing exit-code contract is unchanged. It does not create report files
+or alter any repository. Use the human-readable default for interactive work.
 
 ## Hooks
 

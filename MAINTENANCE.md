@@ -129,8 +129,8 @@ workflow.
    git -C "$audit_dir/repository" rev-parse HEAD
    git -C "$audit_dir/repository" rev-list --count HEAD
    git -C "$audit_dir/repository" rev-list --all --count
-   uv run ai-repo-sanitize check --path "$audit_dir/repository"
-   uv run ai-repo-sanitize preview --path "$audit_dir/repository"
+   uv run ai-repo-sanitize check --path "$audit_dir/repository" --format json > "$audit_dir/check.json"
+   uv run ai-repo-sanitize preview --path "$audit_dir/repository" --format json > "$audit_dir/preview.json"
    ```
 
 3. For GitHub repositories, optionally record the public contributor snapshot
@@ -140,11 +140,12 @@ workflow.
    gh api "repos/OWNER/REPOSITORY/contributors?per_page=100"
    ```
 
-4. Add a dated Markdown report under `reports/` with the repository, source
-   SHA, both counts, command results, observed contributor trailers, and a
-   `Recommendation` section. Link it from `RESEARCH.md`. A finding must state
-   the concrete remediation and the tests/docs that must change; a clean run
-   should say that no remediation is recommended.
+4. Treat the JSON files as raw evidence, then add a dated Markdown report
+   under `reports/` with the repository, source SHA, both counts, observations,
+   and a `Recommendation` section. Link it from `RESEARCH.md`. A finding must
+   state the concrete remediation and the tests/docs that must change; a clean
+   run should say that no remediation is recommended. The CLI never writes the
+   Markdown report.
 
 5. Run the canonical validation gate, including the docs validator and
    doc-claims check. After the evidence is safely recorded, remove only the

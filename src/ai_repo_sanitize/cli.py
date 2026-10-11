@@ -7,6 +7,7 @@ Exit codes: 0 = clean success, 1 = attribution found or operation failed,
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -28,9 +29,21 @@ def build_parser() -> argparse.ArgumentParser:
 
     check = sub.add_parser("check", help="scan a repo for AI attribution without changing anything")
     check.add_argument("--path", type=Path, default=Path("."), help="work tree (default: .)")
+    check.add_argument(
+        "--format",
+        choices=("text", "json"),
+        default="text",
+        help="output format (default: text)",
+    )
 
     preview = sub.add_parser("preview", help="list the commits a rewrite would change")
     preview.add_argument("--path", type=Path, default=Path("."), help="work tree (default: .)")
+    preview.add_argument(
+        "--format",
+        choices=("text", "json"),
+        default="text",
+        help="output format (default: text)",
+    )
 
     rewrite = sub.add_parser(
         "rewrite",
@@ -57,8 +70,8 @@ def build_parser() -> argparse.ArgumentParser:
 
 def _print_commits(header: str, commits: list[tuple[str, str]]) -> None:
     print(header)
-    for short_sha, subject in commits:
-        print(f"  {short_sha} {subject}")
+    for full_sha, subject in commits:
+        print(f"  {full_sha[:12]} {subject}")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -66,18 +79,56 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.command == "check":
             result = pipeline.run_check(args.path)
-            print(
-                f"{result.total} commit(s) scanned across all refs, "
-                f"{len(result.offending)} with AI attribution"
-            )
-            for full_sha, message in result.offending:
-                first = message.splitlines()[0] if message.splitlines() else b""
-                print(f"  {full_sha[:12]} {first.decode('utf-8', 'replace')}")
+            if args.format == "json":
+                print(
+                    json.dumps(
+                        {
+                            "command": "check",
+                            "offending_commits": [
+                                {
+                                    "sha": full_sha,
+                                    "subject": message.splitlines()[0].decode("utf-8", "replace")
+                                    if message.splitlines()
+                                    else "",
+                                }
+                                for full_sha, message in result.offending
+                            ],
+                            "scanned_commits": result.total,
+                            "schema_version": 1,
+                            "scope": "all_refs",
+                        },
+                        sort_keys=True,
+                    )
+                )
+            else:
+                print(
+                    f"{result.total} commit(s) scanned across all refs, "
+                    f"{len(result.offending)} with AI attribution"
+                )
+                for full_sha, message in result.offending:
+                    first = message.splitlines()[0] if message.splitlines() else b""
+                    print(f"  {full_sha[:12]} {first.decode('utf-8', 'replace')}")
             return 1 if result.offending else 0
 
         if args.command == "preview":
             commits = pipeline.preview_commits(args.path)
-            _print_commits(f"{len(commits)} commit(s) would change across all refs:", commits)
+            if args.format == "json":
+                print(
+                    json.dumps(
+                        {
+                            "command": "preview",
+                            "matching_commits": [
+                                {"sha": full_sha, "subject": subject}
+                                for full_sha, subject in commits
+                            ],
+                            "schema_version": 1,
+                            "scope": "all_refs",
+                        },
+                        sort_keys=True,
+                    )
+                )
+            else:
+                _print_commits(f"{len(commits)} commit(s) would change across all refs:", commits)
             return 0
 
         if args.command == "rewrite":

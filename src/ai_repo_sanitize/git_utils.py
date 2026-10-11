@@ -66,7 +66,7 @@ def full_messages(work: Path) -> str:
 
 
 def preview_matches(work: Path) -> list[tuple[str, str]]:
-    """List ``(short_sha, subject)`` for commits whose *full message* matches.
+    """List ``(full_sha, subject)`` for commits whose *full message* matches.
 
     ``--grep`` searches subject and body; ``--format`` only controls what is
     printed. ``-i -E`` are git's own flags and behave identically on Linux
@@ -76,7 +76,7 @@ def preview_matches(work: Path) -> list[tuple[str, str]]:
         work,
         "log",
         "--all",
-        "--format=%h %s",
+        "--format=%H %s",
         "-i",
         "-E",
         f"--grep={GIT_GREP_PATTERN}",
@@ -88,8 +88,8 @@ def preview_matches(work: Path) -> list[tuple[str, str]]:
     matches: list[tuple[str, str]] = []
     for line in result.stdout.splitlines():
         if line.strip():
-            short_sha, _, subject = line.partition(" ")
-            matches.append((short_sha, subject))
+            full_sha, _, subject = line.partition(" ")
+            matches.append((full_sha, subject))
     return matches
 
 
@@ -105,7 +105,7 @@ def commit_messages(work: Path) -> list[tuple[str, bytes]]:
     fields = result.stdout.rstrip(b"\x00").split(b"\x00")
     pairs: list[tuple[str, bytes]] = []
     for i in range(0, len(fields) - 1, 2):
-        pairs.append((fields[i].decode("ascii"), fields[i + 1]))
+        pairs.append((fields[i].decode("ascii").strip(), fields[i + 1]))
     return pairs
 
 

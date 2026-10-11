@@ -88,7 +88,7 @@ def split_remote(url: str) -> tuple[str, str] | None:
 
 
 def preview_commits(work: Path) -> list[tuple[str, str]]:
-    """Return ``(short_sha, subject)`` for commits a rewrite would change."""
+    """Return ``(full_sha, subject)`` for commits a rewrite would change."""
     _require_git_repo(work)
     return git_utils.preview_matches(work)
 

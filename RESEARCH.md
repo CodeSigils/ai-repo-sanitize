@@ -259,6 +259,15 @@ absent); awesome-agent-trust has no hooks at all.
     keeps agent and maintainer decisions reviewable and makes the provenance
     of a recommendation discoverable in the research record.
 
+16. **Structured read-only output is evidence, not a report writer** — `check`
+    and `preview` offer `--format json` for agents and automation. Both retain
+    their text-mode exit codes and all-ref scope; their versioned payloads are
+    a stable raw-evidence interface. The CLI does not write report files:
+    reports require a maintainer or agent to add context, a recommendation, and
+    a research link. Limiting the initial structured interface to read-only
+    commands avoids conflating evidence capture with rewrite or publish
+    authority.
+
 ## 6. Reference URLs
 
 - man page: <https://manpages.debian.org/testing/git-filter-repo/git-filter-repo.1.en.html>
