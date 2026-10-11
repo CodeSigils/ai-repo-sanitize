@@ -93,7 +93,7 @@ def main(argv: list[str] | None = None) -> int:
                                 }
                                 for full_sha, message in result.offending
                             ],
-                            "scanned_commits": result.total,
+                            "scanned_commit_count": result.total,
                             "schema_version": 1,
                             "scope": "all_refs",
                         },

@@ -268,6 +268,21 @@ absent); awesome-agent-trust has no hooks at all.
     commands avoids conflating evidence capture with rewrite or publish
     authority.
 
+17. **Structured payload keys name the value's shape** — the `check` payload
+    exposes the scanned total as `scanned_commit_count` (an integer) beside
+    `offending_commits` (a list), and `preview` exposes `matching_commits` (a
+    list). Naming a count apart from a commit list keeps the read-only evidence
+    unambiguous for agents. The key predates release (`v0.1.0` shipped before
+    `--format json`), so it was renamed without a `schema_version` bump; the
+    version stays `1` until the feature ships.
+
+18. **External-verification reports record the scanned scope** — a dated report
+    from the read-only procedure must state the scanned ref scope and the
+    scanned commit count, adding the checked-ref count only when it differs.
+    This replaced an earlier "both counts" rule that fit only the observation
+    which prompted the all-ref change; mandating a count pair for every
+    repository would record numbers the evidence does not need.
+
 ## 6. Reference URLs
 
 - man page: <https://manpages.debian.org/testing/git-filter-repo/git-filter-repo.1.en.html>

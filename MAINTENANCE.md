@@ -128,8 +128,7 @@ workflow.
    ```
 
 2. Capture the source state and the checked-ref versus all-ref counts before
-   scanning. The distinction is required while the scan-scope follow-up is
-   open:
+   scanning, so the report can state the exact scope that was scanned:
 
    ```bash
    git -C "$audit_dir/repository" rev-parse HEAD
@@ -147,10 +146,11 @@ workflow.
    ```
 
 4. Treat the JSON files as raw evidence, then add a dated Markdown report
-   under `reports/` with the repository, source SHA, both counts, observations,
-   and a `Recommendation` section. Link it from `RESEARCH.md`. A finding must
-   state the concrete remediation and the tests/docs that must change; a clean
-   run should say that no remediation is recommended. The CLI never writes the
+   under `reports/` with the repository, source SHA, the scanned ref scope and
+   commit count (also the checked-ref count when it differs), observations, and
+   a `Recommendation` section. Link it from `RESEARCH.md`. A finding must state
+   the concrete remediation and the tests/docs that must change; a clean run
+   should say that no remediation is recommended. The CLI never writes the
    Markdown report.
 
 5. Run the canonical validation gate, including the docs validator and

@@ -1,6 +1,6 @@
 # ai-repo-sanitize
 
-> Last reviewed: 2026-10-09
+> Last reviewed: 2026-10-11
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![CI](https://github.com/CodeSigils/ai-repo-sanitize/actions/workflows/ci.yml/badge.svg)](https://github.com/CodeSigils/ai-repo-sanitize/actions/workflows/ci.yml)
@@ -97,9 +97,11 @@ opt-in GitHub sidebar-cache refresh, documented in [RESEARCH.md](RESEARCH.md)).
 Only the read-only `check` and `preview` commands accept `--format json` for
 agent and automation use; `rewrite` intentionally remains text-only. The
 schema is versioned (`schema_version: 1`), names the command and `all_refs`
-scope, and includes the scanned or matching commits. JSON changes only stdout;
-the existing exit-code contract is unchanged. It does not create report files
-or alter any repository. Use the human-readable default for interactive work.
+scope, and exposes the commits: `check` reports the scanned commit count and
+the offending commits, while `preview` lists the matching commits. JSON changes
+only stdout; the existing exit-code contract is unchanged. It does not create
+report files or alter any repository. Use the human-readable default for
+interactive work.
 
 ## Hooks
 

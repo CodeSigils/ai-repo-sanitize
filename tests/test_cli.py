@@ -108,7 +108,7 @@ class JsonOutputTests(unittest.TestCase):
                             "subject": "docs: side history",
                         }
                     ],
-                    "scanned_commits": 2,
+                    "scanned_commit_count": 2,
                     "schema_version": 1,
                     "scope": "all_refs",
                 },
