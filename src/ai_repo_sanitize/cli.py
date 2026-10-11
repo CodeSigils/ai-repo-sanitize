@@ -67,7 +67,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "check":
             result = pipeline.run_check(args.path)
             print(
-                f"{result.total} commit(s) scanned, "
+                f"{result.total} commit(s) scanned across all refs, "
                 f"{len(result.offending)} with AI attribution"
             )
             for full_sha, message in result.offending:
@@ -77,7 +77,7 @@ def main(argv: list[str] | None = None) -> int:
 
         if args.command == "preview":
             commits = pipeline.preview_commits(args.path)
-            _print_commits(f"{len(commits)} commit(s) would change:", commits)
+            _print_commits(f"{len(commits)} commit(s) would change across all refs:", commits)
             return 0
 
         if args.command == "rewrite":

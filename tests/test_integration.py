@@ -119,5 +119,36 @@ class EndToEndRewriteTest(unittest.TestCase):
         self.assertEqual(tree, report.after_tree)
 
 
+class AllRefScanTest(unittest.TestCase):
+    def test_check_and_preview_include_attribution_on_a_second_ref(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            # Given: a clean main ref and a side ref with an attribution trailer.
+            work = Path(tmp) / "work"
+            _git(Path(tmp), "init", "--initial-branch", "main", str(work))
+            _git(work, "config", "user.name", "Tester")
+            _git(work, "config", "user.email", "t@example.com")
+            _git(work, "commit", "--allow-empty", "-m", "docs: main history")
+            _git(work, "checkout", "-b", "side")
+            _git(
+                work,
+                "commit",
+                "--allow-empty",
+                "-m",
+                "docs: side history",
+                "-m",
+                "Co-authored-by: Claude <noreply@anthropic.com>",
+            )
+            _git(work, "checkout", "main")
+
+            # When: the read-only pipeline scans the checked-out repository.
+            result = pipeline.run_check(work)
+            preview = pipeline.preview_commits(work)
+
+            # Then: the attribution reachable only from side is still reported.
+            self.assertEqual(result.total, 2)
+            self.assertEqual(len(result.offending), 1)
+            self.assertEqual([subject for _, subject in preview], ["docs: side history"])
+
+
 if __name__ == "__main__":
     unittest.main()

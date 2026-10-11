@@ -1,6 +1,6 @@
 # Research and Decisions (RESEARCH.md)
 
-Last reviewed: 2026-10-09. Reference document: cites the external sources and records the
+Last reviewed: 2026-10-11. Reference document: cites the external sources and records the
 design decisions built on them. Per the [ANTIDRIFT code-changes rule](ANTIDRIFT.md), re-verify
 this file when `patterns.py`, `cli.py`, or the canonical validation commands change.
 
@@ -234,12 +234,38 @@ absent); awesome-agent-trust has no hooks at all.
     receiving permission to merge. This preserves the evidence-before-action
     workflow while branch protection remains a maintainer policy decision.
 
+14. **Attribution scans must cover all fetched refs** — adopt all-ref scope
+    for `check`, `preview`, and residual verification. In the 2026-10-11
+    `python-project-workflow-skill` observation, the checked-out `main`
+    ancestry held 138 commits while the clone held 241 commits across fetched
+    refs; the prior `git log` calls examined only the former. Git's official
+    documentation defines `git log` as walking commits reachable from supplied
+    commits and defines `--all` as supplying every ref plus `HEAD`.
+    <https://git-scm.com/docs/git-log#Documentation/git-log.txt---all>
+    All-ref scope therefore fulfills the existing “every commit” promise and
+    prevents a clean result from overlooking a trailer found only on a remote,
+    local, or tag ref. The implementation adds `--all` to the shared log
+    calls, tests a trailer reachable only from a second ref, and documents
+    that scope precisely; all three actions landed 2026-10-11. This read-only
+    inspection does not expand rewrite or publishing authority: both remain
+    controlled by the explicit branch and push plan. Evidence and the exact
+    alternatives are in
+    `reports/python-project-workflow-skill-sanitizer-check.md`.
+
+15. **Evidence outranks speculation** — recommendations must follow primary
+    official documentation and recorded empirical observations. When those
+    sources conflict with an inference, preference, or unverified assumption,
+    state the uncertainty and retain the evidence-backed conclusion. This
+    keeps agent and maintainer decisions reviewable and makes the provenance
+    of a recommendation discoverable in the research record.
+
 ## 6. Reference URLs
 
 - man page: <https://manpages.debian.org/testing/git-filter-repo/git-filter-repo.1.en.html>
 - filter-repo issue #282 (origin removal), #347 (mirror clone exception)
 - git-filter-branch warning: <https://git-scm.com/docs/git-filter-branch>
 - git log docs: <https://git-scm.com/docs/git-log>
+- git log `--all` scope: <https://git-scm.com/docs/git-log#Documentation/git-log.txt---all>
 - GitHub co-authored commits: <https://docs.github.com/en/pull-requests/committing-changes-to-your-project/creating-and-editing-commits/creating-a-commit-with-multiple-authors>
 - GitHub repository API (default_branch): <https://docs.github.com/en/rest/repos/repos>
 - sourcegraph docs-as-code: <https://sourcegraph.com/blog/documentation-as-code>
@@ -290,10 +316,14 @@ land *before* implementation so the change is informed, not improvised.
   pinned-SHA action, or a composite action) and which shape keeps the tool's
   own gates honest when it inspects foreign history. Reference:
   <https://docs.github.com/en/actions/sharing-automations/creating-actions/about-custom-actions>.
-- **Real-history fixture testing** — two empirical legs on throwaway
-  repositories: (1) run `check` over commits whose co-authors come from a real
-  contributor list (awesome-agent-trust) to prove genuine human co-authors are
-  recognized with zero false positives; (2) build a temp repository with
-  intentionally polluted messages covering the common intrusive AI patterns
-  and assert each one is flagged exactly. The outcome feeds the pattern set
-  and tests. Reference: <https://github.com/CodeSigils/awesome-agent-trust>.
+- **Real-history fixture testing** — completed 2026-10-11. The observed
+  [awesome-agent-trust report](reports/awesome-agent-trust-sanitizer-check.md)
+  records the contributor-preservation fixture and its matching regression
+  test. The follow-up [repo-health-scan report](reports/repo-health-scan-sanitizer-check.md)
+  repeats the read-only check on a second repository. Both scans found zero AI
+  attributions. A third [python-project-workflow-skill report](reports/python-project-workflow-skill-sanitizer-check.md)
+  records zero findings and the resolved scan-scope defect: `check` now
+  follows every available local and fetched ref. These results confirm
+  name-pattern behavior, not GitHub identity verification: a legitimate
+  co-author whose trailer contains a configured agent name would still be
+  flagged.

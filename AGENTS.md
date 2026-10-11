@@ -1,6 +1,6 @@
 # AGENTS.md
 
-> Last reviewed: 2026-10-09
+> Last reviewed: 2026-10-11
 
 This file is the first stop for any agent (or maintainer) working in this
 repository. It points at the single source of truth for what ships, how to
@@ -56,6 +56,15 @@ Interactive version with recommendations: `CONTRIBUTING.md`.
   documented backticked repo path (src/, scripts/, tests/, .githooks/,
   .github/, pyproject.toml, uv.lock) does not exist. Run it with the gate —
   it is the codocia-class half that works inside the editing loop.
+- Read `reports/` before repeating external-repository verification. Follow
+  the read-only temporary-clone procedure in `MAINTENANCE.md`; record each
+  observation as a dated report with a recommendation, link it from
+  `RESEARCH.md`, and never run rewrite or push commands during evidence
+  collection.
+- Base recommendations on primary official documentation and recorded
+  empirical findings. When either conflicts with an inference, preference, or
+  speculation, the documented evidence takes priority; identify any remaining
+  uncertainty instead of presenting it as a conclusion.
 
 ## Git and PR hygiene
 

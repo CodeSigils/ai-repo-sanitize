@@ -36,6 +36,22 @@ class StripAttributionTests(unittest.TestCase):
         message = b"fix: clamp bounds\n\nCo-authored-by: Pat <pat@example.com>\n"
         self.assertEqual(strip_attribution(message), message)
 
+    def test_preserves_verified_awesome_agent_trust_contributors(self) -> None:
+        # Given: contributor identities observed in awesome-agent-trust.
+        message = (
+            b"docs: preserve contributor trailers\n\n"
+            b"Co-authored-by: InsightFactoryAPP <insightfactoryapp@users.noreply.github.com>\n"
+            b"Co-authored-by: piiiico <piiiico@users.noreply.github.com>\n"
+            b"Co-authored-by: CodeSigils <toolsoftrade.web@gmail.com>\n"
+            b"Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>\n"
+        )
+
+        # When: the shared attribution stripper evaluates their trailers.
+        actual = strip_attribution(message)
+
+        # Then: no non-agent contributor trailer is removed.
+        self.assertEqual(actual, message)
+
     def test_trims_trailing_blank_lines_left_by_removal(self) -> None:
         message = b"chore: bump pin\n\nCo-authored-by: Claude <noreply@anthropic.com>\n\n\n"
         self.assertEqual(strip_attribution(message), b"chore: bump pin\n")

@@ -47,8 +47,8 @@ optional.
 
 | Command | What it does | Safe by default |
 | --- | --- | --- |
-| `check` | Scans every commit message for AI attribution trailers; exit code 0 = clean, 1 = found | Read-only |
-| `preview` | Lists the commits whose messages match the drop pattern | Read-only |
+| `check` | Scans every commit reachable from all local and fetched refs for AI attribution trailers; exit code 0 = clean, 1 = found | Read-only |
+| `preview` | Lists matching commits reachable from all local and fetched refs | Read-only |
 | `rewrite` | Rewrites messages only (filter-repo), verifies the tree is unchanged, then optionally pushes | Requires `--push` to touch the remote |
 
 What gets removed (see [`src/ai_repo_sanitize/patterns.py`](src/ai_repo_sanitize/patterns.py) — the single source

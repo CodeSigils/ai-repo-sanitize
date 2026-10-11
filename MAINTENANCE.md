@@ -1,6 +1,6 @@
 # Maintenance
 
-> Last reviewed: 2026-10-09
+> Last reviewed: 2026-10-11
 
 Operational guide for maintainers of `ai-repo-sanitize`. For contribution
 workflow see [CONTRIBUTING.md](CONTRIBUTING.md); for security matters see
@@ -104,6 +104,52 @@ by default, a GET fallback for servers that reject HEAD (405/501), a single
 retry for transient network errors, and a small thread pool. Duplicate URLs
 are checked once and reported per document. On failure, update the dead
 links and commit.
+
+### Read-only external repository verification
+
+Use this procedure when a maintainer or agent needs to observe the sanitizer
+against another repository. It creates only a disposable local clone; never
+run `rewrite`, `--push`, or `--nudge-cache` during this evidence-gathering
+workflow.
+
+1. Start from a clean checkout of this repository and create a dedicated
+   temporary directory. Keep the path printed by `mktemp` so cleanup cannot
+   target a project directory:
+
+   ```bash
+   audit_dir=$(mktemp -d "${TMPDIR:-/tmp}/ai-repo-sanitize-audit.XXXXXX")
+   git clone --filter=blob:none https://github.com/OWNER/REPOSITORY.git "$audit_dir/repository"
+   ```
+
+2. Capture the source state and the checked-ref versus all-ref counts before
+   scanning. The distinction is required while the scan-scope follow-up is
+   open:
+
+   ```bash
+   git -C "$audit_dir/repository" rev-parse HEAD
+   git -C "$audit_dir/repository" rev-list --count HEAD
+   git -C "$audit_dir/repository" rev-list --all --count
+   uv run ai-repo-sanitize check --path "$audit_dir/repository"
+   uv run ai-repo-sanitize preview --path "$audit_dir/repository"
+   ```
+
+3. For GitHub repositories, optionally record the public contributor snapshot
+   without changing the target repository:
+
+   ```bash
+   gh api "repos/OWNER/REPOSITORY/contributors?per_page=100"
+   ```
+
+4. Add a dated Markdown report under `reports/` with the repository, source
+   SHA, both counts, command results, observed contributor trailers, and a
+   `Recommendation` section. Link it from `RESEARCH.md`. A finding must state
+   the concrete remediation and the tests/docs that must change; a clean run
+   should say that no remediation is recommended.
+
+5. Run the canonical validation gate, including the docs validator and
+   doc-claims check. After the evidence is safely recorded, remove only the
+   exact `audit_dir` created in step 1; do not reuse or recursively delete a
+   workspace path.
 
 ## CI layout
 

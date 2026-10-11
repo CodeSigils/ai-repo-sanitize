@@ -61,8 +61,8 @@ def current_tree(work: Path, branch: str) -> str:
 
 
 def full_messages(work: Path) -> str:
-    """Return every commit subject+body, in ``git log`` order (newest first)."""
-    return git(work, "log", "--format=%B").stdout
+    """Return every ref-reachable commit subject+body, newest first."""
+    return git(work, "log", "--all", "--format=%B").stdout
 
 
 def preview_matches(work: Path) -> list[tuple[str, str]]:
@@ -75,6 +75,7 @@ def preview_matches(work: Path) -> list[tuple[str, str]]:
     result = git(
         work,
         "log",
+        "--all",
         "--format=%h %s",
         "-i",
         "-E",
@@ -93,12 +94,12 @@ def preview_matches(work: Path) -> list[tuple[str, str]]:
 
 
 def commit_messages(work: Path) -> list[tuple[str, bytes]]:
-    """Return ``(full_sha, raw_message)`` pairs for every commit.
+    """Return ``(full_sha, raw_message)`` pairs for every ref-reachable commit.
 
     Parsed from NUL-delimited ``git log`` output; messages cannot contain
     NUL bytes, so the split is unambiguous.
     """
-    result = git_bytes(work, "log", f"--format={_RAW_FORMAT}")
+    result = git_bytes(work, "log", "--all", f"--format={_RAW_FORMAT}")
     # Every commit contributes two NUL-delimited fields: SHA, then the raw
     # message (a trailing NUL is stripped so the field list stays even).
     fields = result.stdout.rstrip(b"\x00").split(b"\x00")
