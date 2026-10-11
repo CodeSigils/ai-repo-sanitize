@@ -78,7 +78,19 @@ jobs:
           }
 
           # The same one step accepts --format json for machine-readable evidence.
-          uvx --from "$TOOL_SPEC" ai-repo-sanitize check --path "$attributed" --format json |
-            python3 -c 'import json, sys; p = json.load(sys.stdin); assert p["command"] == "check"; assert p["scope"] == "all_refs"; assert p["schema_version"] == 1; assert p["scanned_commit_count"] == 2 and len(p["offending_commits"]) == 1'
+          # Capture its rc first: check exits 1 when attribution is found, which
+          # is the contract — a piped python3 assertion would never run under
+          # `set -o pipefail` unless the rc is captured like the block above.
+          set +e
+          uvx --from "$TOOL_SPEC" ai-repo-sanitize check --path "$attributed" \
+            --format json >/tmp/downstream-json.out 2>&1
+          json_rc=$?
+          set -e
+          test "$json_rc" -eq 1 || {
+            cat /tmp/downstream-json.out
+            echo "expected exit 1 for attributed history JSON, got $json_rc" >&2
+            exit 1
+          }
+          python3 -c 'import json, sys; p = json.load(open("/tmp/downstream-json.out")); assert p["command"] == "check"; assert p["scope"] == "all_refs"; assert p["schema_version"] == 1; assert p["scanned_commit_count"] == 2 and len(p["offending_commits"]) == 1'
 
           echo "downstream one-step check verified: clean exits 0, attributed exits 1 with JSON evidence"
