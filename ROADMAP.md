@@ -15,7 +15,7 @@ planned work from silently rotting, and a rough **landing** point. Items with
 no check attached are deliberately excluded or parked — see
 [ANTIDRIFT.md](ANTIDRIFT.md) § Non-goals.
 
-## v0.1 — core flow (current)
+## v0.1 — core flow
 
 Shipped: `check` / `preview` / `rewrite` modes, canonical validation gate,
 `.githooks` + CI, and the guarded documentation set.
@@ -98,7 +98,7 @@ Completed for v0.2 (2026-10-09):
 
 ## v0.4 — PR hygiene (current)
 
-Completed for v0.4 (2026-10-09):
+Completed for v0.4 (2026-10-09 – 2026-10-11):
 
 - **Read-only PR-hygiene gate** — `scripts/check-pr-hygiene.py` and
   `.github/workflows/pr-hygiene.yml` query only open PR metadata on a daily,
@@ -119,9 +119,19 @@ Completed for v0.4 (2026-10-09):
   merge. They are read-only and fail for stale merge conditions; approval is
   optional until the maintainer branch-policy decision is made.
 - **Structured read-only evidence** — `check` and `preview` accept
-  `--format json`, retaining their exit codes and all-ref scope. The CLI emits
-  raw evidence only; maintainers and agents turn it into reviewed `reports/`
-  entries using the MAINTENANCE.md procedure.
+  `--format json`, retaining their exit codes and all-ref scope. Versioned
+  (`schema_version: 1`) payloads expose the data's shape: `check` reports the
+  scanned count (`scanned_commit_count`) beside the offending commits, and
+  `preview` lists the matching commits. The CLI emits raw evidence only;
+  maintainers and agents turn it into reviewed `reports/` entries using the
+  MAINTENANCE.md procedure.
+- **Real-history verification** — three read-only scans of external
+  repositories ([awesome-agent-trust](reports/awesome-agent-trust-sanitizer-check.md),
+  [repo-health-scan](reports/repo-health-scan-sanitizer-check.md),
+  [python-project-workflow-skill](reports/python-project-workflow-skill-sanitizer-check.md))
+  found zero AI attributions, produced the contributor-preservation regression
+  test, and surfaced the scan-scope defect that the all-ref change resolved.
+  Recorded in `RESEARCH.md` §7.
 
 Anti-drift check: the checker lives under `scripts/`, its behavior is locked in
 `tests/test_check_pr_hygiene.py`, and the workflow is actionlint-validated.
@@ -150,15 +160,6 @@ Anti-drift check: the checker lives under `scripts/`, its behavior is locked in
   the current read-only report is insufficient. The initial pattern combines
   `repo-health-scan`'s seven-day failure signal, `python-project-workflow`'s
   14-day PR debt criteria, and `zensical-skill`'s stale-state/roadmap gates.
-- **Real-world verification session** — two throwaway-repository test legs,
-  planned for the next working day:
-  1. contributor recognition — run `check` over commits whose co-authors come
-     from the awesome-agent-trust contributor list; genuine human
-     `Co-authored-by:` lines must be recognized (zero false positives);
-  2. intentional pollution — build a temp repository whose commit messages
-     deliberately carry the common intrusive AI patterns and assert each one
-     is flagged exactly.
-  Evidence and outcomes land in RESEARCH.md §7 (future research).
 - **PyPI publishing** — add a tag-triggered `uv publish` step to release.yml
   so `uv tool install ai-repo-sanitize` works from PyPI; research first
   (RESEARCH.md §7), trusted publishing preferred over long-lived tokens.

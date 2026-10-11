@@ -72,6 +72,12 @@ Interactive version with recommendations: `CONTRIBUTING.md`.
   recommendation, add the finding and its source URL to `RESEARCH.md` in the
   same change. Until the source is recorded the recommendation is not
   evidence-based; keep the `RESEARCH.md` reference list current.
+- Reconcile `ROADMAP.md` before declaring completion. Re-read its queued
+  sections and move any item whose evidence already exists (a landed change, a
+  `reports/` entry, or a `RESEARCH.md` finding) into the completed list in the
+  same change; never leave finished work listed as future. The dated
+  `Last reviewed:` header is only a freshness proxy and cannot detect a stale
+  queued item, so this reconciliation is manual.
 
 ## Git and PR hygiene
 
