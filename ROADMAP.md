@@ -96,7 +96,7 @@ Completed for v0.2 (2026-10-09):
 | Codocia-class `covers` coverage | Markdown docs declare which code symbols they cover; snapshot hashes of covered files; `check --base main` reports changed-code-without-docs-coverage | The checker runs in CI on the weekly schedule next to `verify-urls.py`, and its policy file is agent-readable (codocia.md pattern) |
 | Staleguard-class standing instruction | AGENTS.md gains: "after editing code or docs, run the canonical gate and fix any drift" | Already half-there via AGENTS.md's validation gate; extension makes the re-verification of `RESEARCH`/`ROADMAP`/`ANTIDRIFT` mandatory |
 
-## v0.4 — PR hygiene (current)
+## v0.4 — PR hygiene
 
 Completed for v0.4 (2026-10-09 – 2026-10-11):
 
