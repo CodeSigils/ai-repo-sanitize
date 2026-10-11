@@ -7,7 +7,12 @@
 
 Safely strip AI attribution trailers from git history — preview, rewrite,
 verify, publish. A `check` mode for CI, a `rewrite` mode that never pushes
-unless you say so, and a commit-msg hook that keeps new trailers out.
+unless you say so, and a commit-msg hook that keeps new trailers out of this
+repository's own commits.
+
+An *attribution trailer* is a line such as
+`Co-authored-by: Claude <noreply@anthropic.com>` or `Generated with ...`
+appended to a commit message, which credits an AI agent as a contributor.
 
 The default is **no**: nothing is rewritten and nothing is pushed unless you
 pass the explicit flags.
@@ -64,6 +69,10 @@ Only the matching lines are dropped; subjects, bodies, and line-ending style
 
 ## Install
 
+Requirements: `git` and Python 3.10 or newer, plus
+[uv](https://docs.astral.sh/uv/) (recommended) or `pip`. Run the install
+commands from a clone of this repository:
+
 ```bash
 uv tool install .                 # or: pip install .
 uv tool install git-filter-repo   # only if you will use `rewrite`
@@ -91,6 +100,13 @@ ai-repo-sanitize rewrite --path . \
 ai-repo-sanitize rewrite --path . --remote-url ... --backup-dir ... --push
 ```
 
+`rewrite` is the only mode that changes history: it rewrites commit messages
+in place, verifies the resulting tree is byte-identical to the original, and
+touches the remote only when you pass `--push` (via `--force-with-lease`).
+`--backup-dir` names a mirror clone the tool creates for you, so its path must
+not already exist, and `--remote-url` accepts either `owner/name` or a full
+URL. Run `check` and `preview` first to see exactly what would change.
+
 Run `ai-repo-sanitize --help` for every flag (including `--nudge-cache`, the
 opt-in GitHub sidebar-cache refresh, documented in [RESEARCH.md](RESEARCH.md)).
 
@@ -105,16 +121,31 @@ interactive work.
 
 ## Hooks
 
+This repository keeps its git hooks in `.githooks/`. They are opt-in,
+per-clone, and belong to this repo's contributor tooling: `pip install` does
+not install them, and they never travel to the repositories you sanitize.
+Enable them once per clone:
+
 ```bash
 git config core.hooksPath .githooks
 ```
 
-- `pre-commit` runs the fast gates (ruff, ty, docs validator, doc-claims
-  check).
-- `commit-msg` rejects AI-attribution trailers and requires non-empty `what:`
-  and `why:` paragraphs for implementation, configuration, and workflow
-  commits. CI rechecks every newly introduced commit, so a local hook is not
-  the only control.
+- `pre-commit` runs before each commit and blocks it if any fast gate fails:
+  `ruff` (lint), `ty` (types),
+  [`scripts/validate-docs.py`](scripts/validate-docs.py) (the docs contract),
+  and [`scripts/check-doc-claims.py`](scripts/check-doc-claims.py) (documented
+  paths exist). It runs the same set CI runs, so a commit accepted here is
+  unlikely to be rejected later.
+- `commit-msg` inspects the message you just wrote and rejects the commit when
+  it carries an AI-attribution trailer, or when an implementation,
+  configuration, or workflow subject (`feat:`, `fix:`, `ci:`, ...) lacks a
+  non-empty `what:` or `why:` paragraph. CI rechecks every newly introduced
+  commit, so the hook is a fast first line of defence, not the only control.
+
+Both hooks call `uv run`, so [uv](https://docs.astral.sh/uv/) must be on your
+`PATH`; if it is missing, the hook fails and the commit is blocked. Because
+`core.hooksPath` is a local git setting, every new clone must repeat the
+`git config` command above.
 
 ## Validation
 
