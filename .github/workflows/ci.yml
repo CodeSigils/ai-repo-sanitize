@@ -1,9 +1,11 @@
 name: validate
 
-# Action pins: each job pins the same SHAs explicitly. GitHub Actions does
-# not support YAML anchors/aliases in workflow files (see RESEARCH.md), so a
-# pin update means updating every occurrence — keep the `# vX.Y.Z` comments
-# in lock-step across the quality and python-compat jobs.
+# Action pins: each job pins the same SHAs explicitly. GitHub's docs now
+# describe basic YAML anchor/alias support, but anchors are empirically
+# unreliable here (an anchor-based workflow was rejected with "workflow file
+# issue" and zero jobs; see RESEARCH.md §2), so a pin update means updating
+# every occurrence — keep the `# vX.Y.Z` comments in lock-step across the
+# quality and python-compat jobs.
 
 on:
   workflow_dispatch:

@@ -15,4 +15,14 @@ uv run python scripts/validate-docs.py
 echo "=== pre-commit: doc claims ==="
 uv run python scripts/check-doc-claims.py
 
+# CI shellchecks the hooks on ubuntu runners; mirror it locally when the tool
+# is present. Guarded so the hook never adds a hard tool dependency (SECURITY.md
+# limits required binaries to git and gh).
+echo "=== pre-commit: shellcheck hooks ==="
+if command -v shellcheck >/dev/null 2>&1; then
+  shellcheck .githooks/pre-commit .githooks/commit-msg
+else
+  echo "shellcheck not installed; skipping (CI still enforces it)" >&2
+fi
+
 echo "=== pre-commit: PASS ==="

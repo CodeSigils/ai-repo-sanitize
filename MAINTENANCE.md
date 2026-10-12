@@ -178,8 +178,9 @@ breaks anything.
   when a doc references a backticked repo path that does not exist;
   `verify-urls.py` runs only on the dedicated URL-audit schedule or manual dispatch.
 - **Action pins** — the checkout/setup-python/setup-uv SHAs are pinned
-  explicitly in each job. GitHub Actions does not support YAML anchors or
-  aliases in workflow files (empirically verified 2026-10-09; see
+  explicitly in each job. GitHub's docs now describe basic YAML anchor/alias
+  support, but anchors are empirically unreliable here (an anchor-based
+  workflow was rejected with "workflow file issue" on 2026-10-09; see
   RESEARCH.md §2), so a pin update means updating every occurrence and
   keeping the `# vX.Y.Z` comments in lock-step.
 - **python-compat** — the same tests run with the stdlib runner across Python
