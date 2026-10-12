@@ -13,6 +13,7 @@ from typing import Final
 
 DEPENDABOT_DAYS: Final = 7
 REVIEW_DEBT_DAYS: Final = 14
+_MAX_OPEN_PULLS: Final = 1_000
 
 
 @dataclass(frozen=True, slots=True)
@@ -130,11 +131,16 @@ def _open_pulls(repository: str) -> list[PullRequest]:
         "--state",
         "open",
         "--limit",
-        "50",
+        str(_MAX_OPEN_PULLS),
         "--json",
         fields,
     ]
-    return parse_pull_requests(_run(command))
+    pulls = parse_pull_requests(_run(command))
+    if len(pulls) == _MAX_OPEN_PULLS:
+        raise RuntimeError(
+            "reached the open pull-request limit; refusing to report a partial hygiene audit"
+        )
+    return pulls
 
 
 def _write_summary(lines: list[str]) -> None:

@@ -2,11 +2,13 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import sys
 import unittest
 from datetime import datetime, timezone
 from pathlib import Path
 from types import ModuleType
+from unittest import mock
 
 _SCRIPT = Path(__file__).resolve().parent.parent / "scripts" / "check-pr-hygiene.py"
 
@@ -75,6 +77,30 @@ class PullRequestHygieneTests(unittest.TestCase):
     def test_parser_rejects_incomplete_pull_metadata(self) -> None:
         with self.assertRaises(ValueError):
             module.parse_pull_requests('[{"number": 1}]')
+
+    def test_open_pull_limit_fails_instead_of_silently_omitting_pull_requests(self) -> None:
+        # Given: the CLI returns the maximum number of pull requests requested.
+        rows = [
+            {
+                "number": number,
+                "url": f"https://github.com/CodeSigils/ai-repo-sanitize/pull/{number}",
+                "author": {"login": "alice"},
+                "createdAt": "2026-10-09T00:00:00Z",
+                "updatedAt": "2026-10-09T00:00:00Z",
+                "reviewDecision": "APPROVED",
+                "baseRefName": "master",
+                "headRefName": f"feature/{number}",
+            }
+            for number in range(module._MAX_OPEN_PULLS)
+        ]
+
+        # When: the hygiene audit asks GitHub for its open pull requests.
+        # Then: it fails safely rather than claiming the partial audit passed.
+        with (
+            mock.patch.object(module, "_run", return_value=json.dumps(rows)),
+            self.assertRaisesRegex(RuntimeError, "reached the open pull-request limit"),
+        ):
+            module._open_pulls("CodeSigils/ai-repo-sanitize")
 
 
 if __name__ == "__main__":
