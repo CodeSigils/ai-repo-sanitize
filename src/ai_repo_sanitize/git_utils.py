@@ -17,7 +17,6 @@ from .patterns import GIT_GREP_PATTERN
 __all__ = [
     "GitError",
     "current_tree",
-    "full_messages",
     "git",
     "preview_matches",
 ]
@@ -58,11 +57,6 @@ def current_tree(work: Path, branch: str) -> str:
     """Return the tree SHA of *branch* in *work* (empty string when absent)."""
     result = git(work, "rev-parse", "-q", "--verify", f"refs/heads/{branch}^{{tree}}", check=False)
     return result.stdout.strip()
-
-
-def full_messages(work: Path) -> str:
-    """Return every ref-reachable commit subject+body, newest first."""
-    return git(work, "log", "--all", "--format=%B").stdout
 
 
 def preview_matches(work: Path) -> list[tuple[str, str]]:
@@ -107,8 +101,3 @@ def commit_messages(work: Path) -> list[tuple[str, bytes]]:
     for i in range(0, len(fields) - 1, 2):
         pairs.append((fields[i].decode("ascii").strip(), fields[i + 1]))
     return pairs
-
-
-def branch_exists(work: Path, branch: str) -> bool:
-    result = git(work, "rev-parse", "-q", "--verify", f"refs/heads/{branch}", check=False)
-    return result.returncode == 0
