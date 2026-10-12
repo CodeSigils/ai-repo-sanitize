@@ -1,6 +1,6 @@
 # Research and Decisions (RESEARCH.md)
 
-Last reviewed: 2026-10-11. Reference document: cites the external sources and records the
+Last reviewed: 2026-10-12. Reference document: cites the external sources and records the
 design decisions built on them. Per the [ANTIDRIFT code-changes rule](ANTIDRIFT.md), re-verify
 this file when `patterns.py`, `cli.py`, or the canonical validation commands change.
 
@@ -293,6 +293,15 @@ absent); awesome-agent-trust has no hooks at all.
     `.github/workflows/downstream-check.yml` exercises the shape on every push
     against disposable clean and attributed repositories.
 
+20. **Source-pinned `uvx` is the distribution policy** — this is a focused
+    maintainer tool, so the verified `uvx --from git+https://...@<version|sha>`
+    route remains the supported way to consume it. It provides a reproducible
+    GitHub release tag or commit SHA without taking on a PyPI package's broader
+    support and compatibility commitment. Reconsider a registry release only
+    if recorded downstream use shows source-pinned consumption is materially
+    insufficient. Decided 2026-10-12; this is an owner-maintenance policy,
+    informed by the existing verified `uvx` workflow and uv tools guide.
+
 ## 6. Reference URLs
 
 - man page: <https://manpages.debian.org/testing/git-filter-repo/git-filter-repo.1.en.html>
@@ -344,11 +353,6 @@ absent); awesome-agent-trust has no hooks at all.
 Research-first entries for the queued next steps; each is an inquiry that must
 land *before* implementation so the change is informed, not improvised.
 
-- **PyPI publishing** — validate `uv publish` (trusted publishing / OIDC
-  instead of long-lived tokens) as the tag-triggered release step, so
-  `uv tool install ai-repo-sanitize` resolves from PyPI rather than from the
-  repository. Reference:
-  <https://docs.astral.sh/uv/guides/publish/>.
 - **Real-history fixture testing** — completed 2026-10-11. The observed
   [awesome-agent-trust report](reports/awesome-agent-trust-sanitizer-check.md)
   records the contributor-preservation fixture and its matching regression
@@ -367,6 +371,7 @@ land *before* implementation so the change is informed, not improvised.
   (0 clean / 1 found) is the gate and `--format json` stays available for
   machine-readable evidence. `.github/workflows/downstream-check.yml` exercises
   the shape on every push against disposable clean and attributed
-  repositories. Custom composite actions re-enter consideration only after a
-  PyPI release exists. References: <https://docs.astral.sh/uv/guides/tools/>,
+  repositories. Custom composite actions re-enter consideration only when
+  recorded downstream use demonstrates that the plain source-pinned step is
+  inadequate. References: <https://docs.astral.sh/uv/guides/tools/>,
   <https://github.com/astral-sh/setup-uv>.

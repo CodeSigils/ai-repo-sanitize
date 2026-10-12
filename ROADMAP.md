@@ -6,7 +6,7 @@
 > or the canonical command set must update this file, `RESEARCH.md`, and
 > `ANTIDRIFT.md` in the same commit.
 >
-> Last reviewed: 2026-10-11 (owner: @CodeSigils)
+> Last reviewed: 2026-10-12 (owner: @CodeSigils)
 
 ## How to read this roadmap
 
@@ -146,9 +146,9 @@ Completed for v0.5 (2026-10-11):
   step under `astral-sh/setup-uv`, with the bare exit code as the gate
   (0 clean, 1 found) and `--format json` for machine-readable evidence.
   `.github/workflows/downstream-check.yml` proves the shape on fresh runners
-  against disposable clean and attributed repositories on every push. Custom
-  composite actions are deferred until a PyPI release exists. Recorded in
-  `RESEARCH.md` §7.
+  against disposable clean and attributed repositories on every push. A custom
+  composite action remains deferred unless repeated downstream use shows that
+  the plain source-pinned step is inadequate. Recorded in `RESEARCH.md` §7.
 
 Anti-drift check: the downstream-check workflow is the check — it runs the
 documented one-step command on every push and fails if the exit-code contract
@@ -178,12 +178,20 @@ breaks.
   the current read-only report is insufficient. The initial pattern combines
   `repo-health-scan`'s seven-day failure signal, `python-project-workflow`'s
   14-day PR debt criteria, and `zensical-skill`'s stale-state/roadmap gates.
-- **PyPI publishing** — add a tag-triggered `uv publish` step to release.yml
-  so `uv tool install ai-repo-sanitize` works from PyPI; research first
-  (RESEARCH.md §7), trusted publishing preferred over long-lived tokens.
 - **Low-value fillers (back-burner)** — optional `evals/` + `schemas/` dirs
-  (org convention), issue templates, PyPI README polish (only after the PyPI
-  publish step exists).
+  (org convention) and issue templates.
+
+## Distribution policy
+
+- **GitHub source is the supported distribution channel** — downstream users
+  run `uvx --from git+https://github.com/CodeSigils/ai-repo-sanitize@<version|sha>`
+  and pin a released tag or full commit SHA. GitHub Releases remain the
+  versioned release record; this project does not publish to PyPI.
+- **Reconsider PyPI only with evidence of friction** — add it back to the
+  roadmap only if recurring downstream use demonstrates that source-pinned
+  `uvx` is materially inadequate. A registry release would create a broader
+  public support and compatibility commitment, which is not justified for this
+  focused maintainer tool today.
 
 ## Non-goals
 

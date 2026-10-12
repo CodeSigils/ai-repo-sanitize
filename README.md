@@ -1,6 +1,6 @@
 # ai-repo-sanitize
 
-> Last reviewed: 2026-10-11
+> Last reviewed: 2026-10-12
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![CI](https://github.com/CodeSigils/ai-repo-sanitize/actions/workflows/ci.yml/badge.svg)](https://github.com/CodeSigils/ai-repo-sanitize/actions/workflows/ci.yml)
@@ -67,16 +67,27 @@ of truth):
 Only the matching lines are dropped; subjects, bodies, and line-ending style
 (CRLF included) are preserved.
 
-## Install
+## Run without installing
 
-Requirements: `git` and Python 3.10 or newer, plus
-[uv](https://docs.astral.sh/uv/) (recommended) or `pip`. Run the install
-commands from a clone of this repository:
+Requirements: `git`, Python 3.10 or newer, and
+[uv](https://docs.astral.sh/uv/). Download and run a chosen release temporarily
+with this command:
 
 ```bash
-uv tool install .                 # or: pip install .
-uv tool install git-filter-repo   # only if you will use `rewrite`
+uvx --from git+https://github.com/CodeSigils/ai-repo-sanitize@v0.1.0 \
+  ai-repo-sanitize check --path .
 ```
+
+`uvx` downloads the named GitHub revision (a release tag in this example),
+runs `ai-repo-sanitize` in a temporary isolated environment, then leaves no
+persistent tool installation. Replace `@v0.1.0` with a later released tag or a
+full 40-character commit SHA; do not track `master` in automation.
+
+## Run from source
+
+For local development, run `uv tool install .` (or `pip install .`) from a
+clone. Install `git-filter-repo` separately with `uv tool install
+git-filter-repo` only if you will use `rewrite`.
 
 The sanitizer's runtime is stdlib-only: `check`, `preview`, and `hook` do not
 need [git-filter-repo](https://github.com/newren/git-filter-repo).
@@ -142,7 +153,7 @@ the tool instead of tracking `master`: `@v0.1.0` is a released tag, and a full
 40-character SHA works too. The exit code is the contract: `check` returns 0 on
 clean history and 1 when attribution is found, so the bare step gates the job.
 Add `--format json` in a later step if you want machine-readable evidence for a
-report. For a persistent install instead of the ephemeral `uvx` run:
+report. For a persistent source install instead of the ephemeral `uvx` run:
 
 ```bash
 uv tool install git+https://github.com/CodeSigils/ai-repo-sanitize@v0.1.0

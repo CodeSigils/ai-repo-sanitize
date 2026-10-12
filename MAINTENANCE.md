@@ -1,6 +1,6 @@
 # Maintenance
 
-> Last reviewed: 2026-10-11
+> Last reviewed: 2026-10-12
 
 Operational guide for maintainers of `ai-repo-sanitize`. For contribution
 workflow see [CONTRIBUTING.md](CONTRIBUTING.md); for security matters see
@@ -202,11 +202,12 @@ Releases are tag-driven and mostly automatic:
 2. The tag push fires `.github/workflows/release.yml`
    (`on: push tags: v*.*.*`), first verifies that the tagged commit is
    reachable from `master`, then reruns the canonical gate before the
-   write-permitted publishing job builds distributions with `uv build` and
+   write-permitted release job builds distributions with `uv build` and
    creates the GitHub Release from `dist/*` with auto-generated notes.
 3. The tag push also re-runs `.github/workflows/ci.yml`; its result is useful
    independent evidence, while the release workflow's preflight is the
-   publishing gate.
+   release gate. Distributions are attached to the GitHub Release; the project
+   does not publish packages to PyPI.
 4. Refine the release notes afterwards with `gh release edit vX.Y.Z` (or the
    web UI).
 
