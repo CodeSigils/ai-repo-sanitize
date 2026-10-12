@@ -104,10 +104,10 @@ final merge decision.
 
 ### Weekly URL re-check
 
-ci.yml runs `scripts/verify-urls.py` on the weekly schedule and on manual
-dispatch. It checks every external URL found in the documentation set: HEAD
-by default, a GET fallback for servers that reject HEAD (405/501), a single
-retry for transient network errors, and a small thread pool. Duplicate URLs
+url-audit.yml runs `scripts/verify-urls.py` on the weekly schedule and on
+manual dispatch. It checks every external URL found in non-hidden Markdown
+documentation: HEAD by default, a GET fallback for servers that reject HEAD
+(405/501), a single retry for transient network errors, and a small thread pool. Duplicate URLs
 are checked once and reported per document. On failure, update the dead
 links and commit.
 
@@ -163,8 +163,11 @@ workflow.
 The executable picture of this repository is
 [.github/workflows/ci.yml](.github/workflows/ci.yml) — read it before changing
 behavior. The workflow validates on every push to `master` and on every pull
-request, and re-checks external URLs on a weekly schedule: ubuntu-latest
-migrates to Ubuntu 26 on 2026-10-19; the `${{ vars.RUNNER_X86_64 || 'ubuntu-latest' }}` pin is the escape hatch if that breaks anything.
+request. [url-audit.yml](.github/workflows/url-audit.yml) separately re-checks
+external URLs weekly and on manual dispatch, so a normal push cannot cancel
+the scheduled audit: ubuntu-latest migrates to Ubuntu 26 on 2026-10-19; the
+`${{ vars.RUNNER_X86_64 || 'ubuntu-latest' }}` pin is the escape hatch if that
+breaks anything.
 
 - **quality** — `uv sync --locked`, shellcheck the hooks, then the
   canonical gate: `ruff check .`, `ty check`, `pytest`, `validate-docs.py`;
@@ -173,7 +176,7 @@ migrates to Ubuntu 26 on 2026-10-19; the `${{ vars.RUNNER_X86_64 || 'ubuntu-late
   a datadef-style doc-coverage step warns (never fails) when a code change
   ships without a matching docs change; a codocia-class claims check fails
   when a doc references a backticked repo path that does not exist;
-  `verify-urls.py` runs only on schedule or manual dispatch.
+  `verify-urls.py` runs only on the dedicated URL-audit schedule or manual dispatch.
 - **Action pins** — the checkout/setup-python/setup-uv SHAs are pinned
   explicitly in each job. GitHub Actions does not support YAML anchors or
   aliases in workflow files (empirically verified 2026-10-09; see

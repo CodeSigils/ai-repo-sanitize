@@ -61,8 +61,10 @@ Completed for v0.2 (2026-10-09):
 - **Link extraction hardened** — `validate-docs.py` uses a destination-first
   pattern (titled and angle-bracket destinations parse cleanly) and skips
   fenced code blocks, so docs carrying such link forms or code samples cannot
-  false-fail the internal-link check. Balanced-parens destinations remain a
-  documented limitation (RESEARCH.md §2).
+  false-fail the internal-link check. `url-audit.yml` separately runs the
+  external-link audit weekly and on manual dispatch, so its third-party I/O
+  cannot be canceled by ordinary push validation. Balanced-parens destinations
+  remain a documented limitation (RESEARCH.md §2).
 - **Doc-coverage WARN** — `scripts/check-doc-coverage.py` warns (never fails)
   when a code-path change ships without a matching docs change, using the
   triggering push/PR's exact before-and-after range (datadef warn-not-fail:

@@ -11,10 +11,6 @@ on:
     branches: [master]
     tags: ["v*.*.*"]
   pull_request:
-  schedule:
-    # GitHub can delay or drop scheduled workflows at the start of an hour,
-    # so the run is offset a few minutes in.
-    - cron: "17 9 * * 1" # weekly: Monday 09:17 UTC
 
 concurrency:
   group: validate-${{ github.ref }}
@@ -74,10 +70,6 @@ jobs:
         run: uv run python scripts/check-doc-coverage.py --base "${{ github.event.pull_request.base.sha }}" --head "${{ github.event.pull_request.head.sha }}"
       - name: Doc claims check (codocia-class)
         run: uv run python scripts/check-doc-claims.py
-      - name: External URL check (scheduled only)
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-        run: uv run python scripts/verify-urls.py
-
   python-compat:
     runs-on: ${{ vars.RUNNER_X86_64 || 'ubuntu-latest' }}
     timeout-minutes: 10

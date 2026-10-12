@@ -303,17 +303,37 @@ absent); awesome-agent-trust has no hooks at all.
     insufficient. Decided 2026-10-12; this is an owner-maintenance policy,
     informed by the existing verified `uvx` workflow and uv tools guide.
 
-21. **External-link checks ignore code examples** — inline code and fenced
-    blocks may contain illustrative URL-shaped placeholders that are not
-    navigable references. `verify-urls.py` excludes both before extracting URLs
+21. **External-link checks ignore non-documentation examples** — inline code
+    spans (with any backtick delimiter), backtick- or tilde-fenced blocks, and hidden Markdown
+    paths may contain illustrative URL-shaped placeholders or generated data,
+    not navigable references. `verify-urls.py` excludes them before extraction
     and treats a malformed URL as an ordinary unreachable finding rather than
-    crashing the scheduled audit. Regression tests cover both cases. Decided
-    2026-10-12.
+    crashing the scheduled audit. Regression tests cover both cases. The fence
+    and code-span rules follow the CommonMark specification (a fenced code block
+    may use backticks or tildes; the closing fence is the same character and at
+    least as long as the opener; a code span is closed by a backtick run of equal
+    length). Excluding hidden (dot-prefixed) paths is a repository scoping
+    decision, not a spec rule. Sources:
+    <https://spec.commonmark.org/0.31.2/#fenced-code-blocks> and
+    <https://spec.commonmark.org/0.31.2/#code-spans>. Decided 2026-10-12.
+
+22. **External-link audit is isolated from push validation** — GitHub scheduled
+    workflows run against the default branch, while `concurrency.cancel-in-progress:
+    true` cancels currently running or queued jobs in the same concurrency group.
+    `url-audit.yml` therefore owns the weekly/manual URL check with a non-canceling
+    group; `ci.yml` remains the fast push/PR validation gate. The hygiene query
+    requests up to 1,000 open PRs and fails at that cap instead of silently
+    certifying a partial audit. Sources: the `schedule` trigger (runs on the
+    default branch), <https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule>;
+    the `concurrency`/`cancel-in-progress` reference, <https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#concurrency>;
+    and `gh pr list` (its fetch limit), <https://cli.github.com/manual/gh_pr_list>.
+    Decided 2026-10-12.
 
 ## 6. Reference URLs
 
 - man page: <https://manpages.debian.org/testing/git-filter-repo/git-filter-repo.1.en.html>
-- filter-repo issue #282 (origin removal), #347 (mirror clone exception)
+- filter-repo issue #282 (origin removal by design): <https://github.com/newren/git-filter-repo/issues/282>
+- filter-repo issue #347 (`--mirror` clone is exempt from origin removal): <https://github.com/newren/git-filter-repo/issues/347>
 - git-filter-branch warning: <https://git-scm.com/docs/git-filter-branch>
 - git log docs: <https://git-scm.com/docs/git-log>
 - git log `--all` scope: <https://git-scm.com/docs/git-log#Documentation/git-log.txt---all>
@@ -342,6 +362,11 @@ absent); awesome-agent-trust has no hooks at all.
 - GitHub Actions workflow syntax (permissions): <https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax>
 - GitHub Actions events and branch/path filter behavior: <https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows>
 - GitHub Actions job dependencies (`needs`): <https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#jobsjob_idneeds>
+- GitHub CLI pull-request listing and its fetch limit: <https://cli.github.com/manual/gh_pr_list>
+- GitHub Actions scheduled events (runs on the default branch): <https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule>
+- GitHub Actions concurrency and `cancel-in-progress`: <https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#concurrency>
+- CommonMark spec, fenced code blocks (backtick or tilde fences): <https://spec.commonmark.org/0.31.2/#fenced-code-blocks>
+- CommonMark spec, code spans (backtick-run delimiters): <https://spec.commonmark.org/0.31.2/#code-spans>
 - Git ancestry checks (`merge-base --is-ancestor`): <https://git-scm.com/docs/git-merge-base>
 - GitHub ruleset controls and required checks: <https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/available-rules-for-rulesets>
 - GitHub ruleset bypass modes: <https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/creating-rulesets-for-a-repository>

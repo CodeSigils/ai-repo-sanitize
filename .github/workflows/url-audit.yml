@@ -1,0 +1,32 @@
+name: url audit
+
+# External URLs are intentionally checked apart from the push/PR gate: they
+# are slow and depend on third parties, while a scheduled audit must not be
+# cancelled by an ordinary master push.
+on:
+  workflow_dispatch:
+  schedule:
+    # GitHub can delay or drop scheduled workflows at the start of an hour,
+    # so the run is offset a few minutes in.
+    - cron: "17 9 * * 1" # weekly: Monday 09:17 UTC
+
+concurrency:
+  group: url-audit-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  verify-urls:
+    runs-on: ${{ vars.RUNNER_X86_64 || 'ubuntu-latest' }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+      - name: Verify external documentation URLs
+        run: python3 scripts/verify-urls.py

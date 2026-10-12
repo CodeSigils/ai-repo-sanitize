@@ -1,6 +1,6 @@
 # Security Policy
 
-> Last reviewed: 2026-10-09
+> Last reviewed: 2026-10-12
 
 ## Scope
 
@@ -42,9 +42,10 @@ report against the pattern set — and a test change is the fix.
 - Releases require a `v*.*.*` tag whose commit is reachable from `master`; the
   release workflow reruns the canonical gate before it receives write
   permission to publish.
-- CI (`validate` workflow) runs the canonical gate on every push to `master`,
-  tag push, and pull request; scheduled runs also re-check external URLs
-  documented in the repository.
+- The `validate` workflow (`ci.yml`) runs the canonical gate on every push to
+  `master`, tag push, and pull request. External URLs documented in the
+  repository are re-checked separately by `url-audit.yml` on a weekly schedule
+  and on manual dispatch, so a routine push cannot cancel that audit.
 - No maintainer commit carries an AI-attribution trailer; the
   `.githooks/commit-msg` hook rejects them on every clone that installed the
   hooks.
