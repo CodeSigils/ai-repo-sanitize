@@ -8,9 +8,11 @@ import json
 import subprocess
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 
-from ai_repo_sanitize import cli
+from ai_repo_sanitize import cli, pipeline
+from ai_repo_sanitize.platform import ContributorsSnapshot
 
 
 def _git(cwd: Path, *args: str) -> None:
@@ -156,6 +158,33 @@ class JsonOutputTests(unittest.TestCase):
             # Then: preview agrees with check and rewrite that nothing would change.
             self.assertEqual(exit_code, 0)
             self.assertEqual(json.loads(output.getvalue())["matching_commits"], [])
+
+
+class ContributorsSnapshotOutputTests(unittest.TestCase):
+    def _rewrite_output(self, logins: tuple[str, ...]) -> str:
+        """Run `rewrite` with a stubbed report and return what it printed."""
+        report = pipeline.RewriteReport(
+            plan=pipeline.RewritePlan(work_dir=Path("."), branch="master")
+        )
+        report.before_tree = "a" * 40
+        report.after_tree = "a" * 40
+        report.contributors = ContributorsSnapshot(owner="o", repo="r", logins=logins)
+        output = io.StringIO()
+        with (
+            unittest.mock.patch.object(cli.pipeline, "run_rewrite", return_value=report),
+            contextlib.redirect_stdout(output),
+        ):
+            exit_code = cli.main(["rewrite", "--path", "."])
+        self.assertEqual(exit_code, 0)
+        return output.getvalue()
+
+    def test_empty_contributors_prints_empty_marker(self) -> None:
+        # Regression: `+` once bound tighter than `or`, so this branch was dead
+        # and an empty snapshot printed a bare label.
+        self.assertIn("contributors snapshot: (empty)", self._rewrite_output(()))
+
+    def test_named_contributors_are_listed(self) -> None:
+        self.assertIn("contributors snapshot: alice, bob", self._rewrite_output(("alice", "bob")))
 
 
 if __name__ == "__main__":

@@ -151,11 +151,8 @@ def main(argv: list[str] | None = None) -> int:
             if report.pushed:
                 print(f"pushed: {plan.branch} via --force-with-lease")
             if report.contributors is not None:
-                print(
-                    "contributors snapshot: "
-                    + ", ".join(report.contributors.logins[:10])
-                    or "contributors snapshot: (empty)"
-                )
+                logins = ", ".join(report.contributors.logins[:10])
+                print(f"contributors snapshot: {logins or '(empty)'}")
             return 1 if report.residual else 0
 
     except pipeline.PipelineError as exc:
