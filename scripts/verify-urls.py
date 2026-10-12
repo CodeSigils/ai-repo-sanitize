@@ -23,10 +23,18 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 
 _URL_RE = re.compile(r"https?://[^\s)\]}>]+")
-_INLINE_CODE_RE = re.compile(r"`[^`\n]*`")
+_INLINE_CODE_RE = re.compile(r"(?P<delimiter>`+).*?(?P=delimiter)")
+_FENCE_RE = re.compile(r"^[ \t]*(?P<delimiter>`{3,}|~{3,})")
 _UA = {"User-Agent": "ai-repo-sanitize-url-check"}
 _MAX_WORKERS = 8
 _MAX_ATTEMPTS = 2
+_REQUEST_ERRORS = (
+    urllib.error.HTTPError,
+    urllib.error.URLError,
+    TimeoutError,
+    OSError,
+    ValueError,
+)
 
 
 def collect_urls() -> tuple[dict[str, list[str]], list[str]]:
@@ -34,18 +42,30 @@ def collect_urls() -> tuple[dict[str, list[str]], list[str]]:
     per_url: dict[str, list[str]] = {}
     unreadable: list[str] = []
     for path in sorted(ROOT.rglob("*.md")):
+        relative_path = path.relative_to(ROOT)
+        if any(part.startswith(".") for part in relative_path.parts):
+            continue
         try:
             text = path.read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError) as exc:
-            unreadable.append(f"{path.relative_to(ROOT)} ({exc.__class__.__name__})")
+            unreadable.append(f"{relative_path} ({exc.__class__.__name__})")
             continue
-        doc = str(path.relative_to(ROOT))
-        in_fence = False
+        doc = str(relative_path)
+        fence_char: str | None = None
+        fence_length = 0
         for line in text.splitlines():
-            if line.strip().startswith("```"):
-                in_fence = not in_fence
-                continue
-            if in_fence:
+            fence = _FENCE_RE.match(line)
+            if fence is not None:
+                delimiter = fence["delimiter"]
+                if fence_char is None:
+                    fence_char = delimiter[0]
+                    fence_length = len(delimiter)
+                    continue
+                if delimiter[0] == fence_char and len(delimiter) >= fence_length:
+                    fence_char = None
+                    fence_length = 0
+                    continue
+            if fence_char is not None:
                 continue
             for url in _URL_RE.findall(_INLINE_CODE_RE.sub("", line)):
                 # A closing markdown code-span backtick is never part of the URL.
@@ -78,7 +98,7 @@ def check(url: str) -> bool:
                 print(f"  - unreachable: {url} (HTTP {exc.code})")
                 return False
             break
-        except (urllib.error.URLError, TimeoutError, OSError, ValueError) as exc:
+        except _REQUEST_ERRORS as exc:
             if attempt + 1 >= _MAX_ATTEMPTS:
                 print(f"  - unreachable: {url} ({exc.__class__.__name__})")
                 return False
@@ -86,13 +106,7 @@ def check(url: str) -> bool:
         # trusted: docs URLs, reachability-only check
         with urllib.request.urlopen(_request(url, method="GET"), timeout=15) as response:
             return 200 <= response.status < 400
-    except (
-        urllib.error.HTTPError,
-        urllib.error.URLError,
-        TimeoutError,
-        OSError,
-        ValueError,
-    ) as exc:
+    except _REQUEST_ERRORS as exc:
         if isinstance(exc, urllib.error.HTTPError):
             detail = f"(HTTP {exc.code})"
         else:

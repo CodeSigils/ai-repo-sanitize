@@ -20,15 +20,22 @@ def _load_verifier() -> ModuleType:
 
 
 class UrlCollectionTests(unittest.TestCase):
-    def test_ignores_url_shaped_inline_code(self) -> None:
+    def test_ignores_url_shaped_code_examples_and_hidden_docs(self) -> None:
         # Given: docs with a real link and an illustrative command placeholder.
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             (root / "README.md").write_text(
                 "See <https://example.com/docs>. "
                 "Run `uvx --from git+https://...@<version|sha> tool`.\n"
-                "```text\nhttps://example.invalid/in-a-fence\n```\n",
+                "Run ``uvx --from git+https://example.invalid/double@<version|sha> tool``.\n"
+                "```text\nhttps://example.invalid/in-a-fence\n```\n"
+                "~~~text\nhttps://example.invalid/in-a-tilde-fence\n~~~\n",
                 encoding="utf-8",
+            )
+            cache = root / ".pytest_cache"
+            cache.mkdir()
+            (cache / "README.md").write_text(
+                "https://example.invalid/generated\n", encoding="utf-8"
             )
             verifier = _load_verifier()
 
