@@ -60,7 +60,7 @@ ATTRIBUTION_RE: re.Pattern[bytes] = re.compile(
 #: ``\b`` (git's regex engine is not POSIX-clean about it) and mirrors
 #: ATTRIBUTION_RE's alternatives.
 GIT_GREP_PATTERN: str = (
-    rf"co-authored-by:.*({_AGENTS})|(ultraworked|generated|assisted) with"
+    rf"co-authored-by:.*({_AGENTS})|(ultraworked|generated|assisted)[[:space:]]+with([^[:alnum:]_]|$)"
 )
 
 

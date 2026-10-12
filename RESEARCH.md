@@ -59,7 +59,7 @@ this file when `patterns.py`, `cli.py`, or the canonical validation commands cha
 - **URL-checker backtick capture** — the naive `https?://[^\s)\]}>]+`
   extraction captured a closing markdown code-span backtick into the URL,
   producing a false `404` failure (first observed 2026-10-09). Fix: strip the
-  backtick with the punctuation set — `url.rstrip(".,;:!?`")`. No documented
+   backtick with the punctuation set — ``url.rstrip(".,;:!?")``. No documented
   URL contains a real trailing backtick, so the strip is safe.
 - **GitHub Actions operational gotchas (2026-10-09)** — three things that
   bit this repo's workflows and are now encoded into them:
@@ -144,7 +144,8 @@ absent); awesome-agent-trust has no hooks at all.
 
 1. **One pattern, everywhere.** `patterns.py` defines the attribution regex once; check,
    preview, rewrite-callback and the commit-msg hook all derive from it. Preview's
-   `GIT_GREP_PATTERN` is the ERE form of `ATTRIBUTION_RE` minus `\b`.
+   `GIT_GREP_PATTERN` expresses the Python detector's `with\b` boundary with the
+   POSIX ERE suffix `([^[:alnum:]_]|$)`, which git accepts without using `\b`.
 2. **Human co-authors survive.** A `Co-authored-by` trailer is dropped only when one of the
    known agent names (`sisyphus, claude, opencode, codex, copilot, cursor, devin`) appears on
    the line; branded lines (`ultraworked|generated|assisted with`) are always removed. This is
@@ -284,7 +285,7 @@ absent); awesome-agent-trust has no hooks at all.
     repository would record numbers the evidence does not need.
 
 19. **A downstream consumer runs `check` as one isolated step** — the ephemeral
-    `uvx --from git+https://github.com/CodeSigils/ai-repo-sanitize@<version|sha> ai-repo-sanitize check`
+    `uvx --from git+<repository-url>@<version|sha> ai-repo-sanitize check`
     form installs nothing persistently and needs no git-filter-repo, so the
     bare exit code (0 clean / 1 found) gates the downstream job directly. A
     standalone step, not a custom composite action, preserves the read-only
@@ -294,13 +295,20 @@ absent); awesome-agent-trust has no hooks at all.
     against disposable clean and attributed repositories.
 
 20. **Source-pinned `uvx` is the distribution policy** — this is a focused
-    maintainer tool, so the verified `uvx --from git+https://...@<version|sha>`
+    maintainer tool, so the verified `uvx --from git+<repository-url>@<version|sha>`
     route remains the supported way to consume it. It provides a reproducible
     GitHub release tag or commit SHA without taking on a PyPI package's broader
     support and compatibility commitment. Reconsider a registry release only
     if recorded downstream use shows source-pinned consumption is materially
     insufficient. Decided 2026-10-12; this is an owner-maintenance policy,
     informed by the existing verified `uvx` workflow and uv tools guide.
+
+21. **External-link checks ignore code examples** — inline code and fenced
+    blocks may contain illustrative URL-shaped placeholders that are not
+    navigable references. `verify-urls.py` excludes both before extracting URLs
+    and treats a malformed URL as an ordinary unreachable finding rather than
+    crashing the scheduled audit. Regression tests cover both cases. Decided
+    2026-10-12.
 
 ## 6. Reference URLs
 
@@ -365,7 +373,7 @@ land *before* implementation so the change is informed, not improvised.
   co-author whose trailer contains a configured agent name would still be
   flagged.
 - **Third-party CI integration** — completed 2026-10-11. The downstream shape
-  is the one-step `uvx --from git+https://github.com/CodeSigils/ai-repo-sanitize@<version|sha> ai-repo-sanitize check`
+  is the one-step `uvx --from git+<repository-url>@<version|sha> ai-repo-sanitize check`
   under setup-uv: a plain step, not a custom action, so a consumer who asked
   only for `check` receives no rewrite capability with it. The bare exit code
   (0 clean / 1 found) is the gate and `--format json` stays available for

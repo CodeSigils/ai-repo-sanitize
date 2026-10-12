@@ -1,6 +1,6 @@
 # Anti-Drift Strategy (ANTIDRIFT.md)
 
-Last reviewed: 2026-10-11. Re-verify per the [code-changes rule](#the-code-changes-rule): when
+Last reviewed: 2026-10-12. Re-verify per the [code-changes rule](#the-code-changes-rule): when
 `src/ai_repo_sanitize/patterns.py`, `src/ai_repo_sanitize/cli.py`, or the canonical validation
 commands change, re-read this file and `RESEARCH.md` and update anything stale in the same commit.
 

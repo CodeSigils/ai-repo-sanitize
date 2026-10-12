@@ -88,6 +88,7 @@ class AttributionDetectionTests(unittest.TestCase):
         self.assertNotIn("\\b", GIT_GREP_PATTERN)
         # (?...) captures are invalid in POSIX ERE (git log --grep rejects them)
         self.assertNotIn("(?:", GIT_GREP_PATTERN)
+        self.assertIn("([^[:alnum:]_]|$)", GIT_GREP_PATTERN)
 
     def test_branded_line_without_trailing_content_matches(self) -> None:
         self.assertTrue(has_attribution(b"Ultraworked with Sisyphus\n"))

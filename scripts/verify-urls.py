@@ -23,6 +23,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 
 _URL_RE = re.compile(r"https?://[^\s)\]}>]+")
+_INLINE_CODE_RE = re.compile(r"`[^`\n]*`")
 _UA = {"User-Agent": "ai-repo-sanitize-url-check"}
 _MAX_WORKERS = 8
 _MAX_ATTEMPTS = 2
@@ -39,10 +40,17 @@ def collect_urls() -> tuple[dict[str, list[str]], list[str]]:
             unreadable.append(f"{path.relative_to(ROOT)} ({exc.__class__.__name__})")
             continue
         doc = str(path.relative_to(ROOT))
-        for url in _URL_RE.findall(text):
-            # A closing markdown code-span backtick is never part of the URL.
-            clean = url.rstrip(".,;:!?`")
-            per_url.setdefault(clean, []).append(doc)
+        in_fence = False
+        for line in text.splitlines():
+            if line.strip().startswith("```"):
+                in_fence = not in_fence
+                continue
+            if in_fence:
+                continue
+            for url in _URL_RE.findall(_INLINE_CODE_RE.sub("", line)):
+                # A closing markdown code-span backtick is never part of the URL.
+                clean = url.rstrip(".,;:!?`")
+                per_url.setdefault(clean, []).append(doc)
     for docs in per_url.values():
         docs.sort()
     return per_url, unreadable
@@ -70,7 +78,7 @@ def check(url: str) -> bool:
                 print(f"  - unreachable: {url} (HTTP {exc.code})")
                 return False
             break
-        except (urllib.error.URLError, TimeoutError, OSError) as exc:
+        except (urllib.error.URLError, TimeoutError, OSError, ValueError) as exc:
             if attempt + 1 >= _MAX_ATTEMPTS:
                 print(f"  - unreachable: {url} ({exc.__class__.__name__})")
                 return False
@@ -78,7 +86,13 @@ def check(url: str) -> bool:
         # trusted: docs URLs, reachability-only check
         with urllib.request.urlopen(_request(url, method="GET"), timeout=15) as response:
             return 200 <= response.status < 400
-    except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, OSError) as exc:
+    except (
+        urllib.error.HTTPError,
+        urllib.error.URLError,
+        TimeoutError,
+        OSError,
+        ValueError,
+    ) as exc:
         if isinstance(exc, urllib.error.HTTPError):
             detail = f"(HTTP {exc.code})"
         else:

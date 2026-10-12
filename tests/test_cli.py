@@ -37,6 +37,16 @@ def _repo_with_attributed_side_ref(root: Path) -> Path:
     return work
 
 
+def _repo_with_near_match(root: Path) -> Path:
+    work = root / "work"
+    _git(root, "init", "--initial-branch", "main", str(work))
+    _git(work, "config", "user.name", "Tester")
+    _git(work, "config", "user.email", "t@example.com")
+    _git(work, "commit", "--allow-empty", "-m", "docs: main history")
+    _git(work, "commit", "--allow-empty", "-m", "docs: near match", "-m", "Assisted withfoobar")
+    return work
+
+
 class ParserTests(unittest.TestCase):
     def test_rewrite_defaults_branch_to_master(self) -> None:
         ns = cli.build_parser().parse_args(["rewrite", "--path", "/tmp/x"])
@@ -132,6 +142,20 @@ class JsonOutputTests(unittest.TestCase):
             self.assertEqual(len(payload["matching_commits"]), 1)
             self.assertEqual(len(payload["matching_commits"][0]["sha"]), 40)
             self.assertEqual(payload["matching_commits"][0]["subject"], "docs: side history")
+
+    def test_preview_omits_branding_near_match(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            # Given: a commit message that is not a branding line.
+            work = _repo_with_near_match(Path(tmp))
+            output = io.StringIO()
+
+            # When: preview emits its structured read-only result.
+            with contextlib.redirect_stdout(output):
+                exit_code = cli.main(["preview", "--path", str(work), "--format", "json"])
+
+            # Then: preview agrees with check and rewrite that nothing would change.
+            self.assertEqual(exit_code, 0)
+            self.assertEqual(json.loads(output.getvalue())["matching_commits"], [])
 
 
 if __name__ == "__main__":
