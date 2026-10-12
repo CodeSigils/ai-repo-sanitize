@@ -329,6 +329,108 @@ absent); awesome-agent-trust has no hooks at all.
     and `gh pr list` (its fetch limit), <https://cli.github.com/manual/gh_pr_list>.
     Decided 2026-10-12.
 
+23. **Configuration audit (Python + CI): findings and follow-ups** — a
+    correctness/efficiency/duplication/coverage audit of the Python sources,
+    scripts, and workflows on 2026-10-12 produced the following findings. None
+    is fixed by this entry; each is recorded here as the evidence base for a
+    later change.
+
+    Correctness:
+
+    - `cli.py` prints the contributors snapshot with
+      `"contributors snapshot: " + ", ".join(logins[:10]) or "… (empty)"`; `+`
+      binds tighter than `or`, so the left operand is always a non-empty
+      string and the `(empty)` fallback is unreachable. An empty snapshot
+      prints a bare label instead of the intended message.
+    - `git_utils.full_messages` is dead code (referenced only by `__all__` and
+      its own definition) and `git_utils.branch_exists` has no references at
+      all.
+    - The `ci.yml` header comment states GitHub Actions "does not support YAML
+      anchors/aliases". GitHub's own docs (2025-09-18) now describe *basic*
+      anchor/alias support (merge keys `<<:` still excluded), which conflicts
+      with this repository's direct observation (anchors rejected on
+      2026-10-09, run 37915474228, "workflow file issue" and zero jobs). Per
+      the evidence-priority rule the per-job pinning stance stands, but the
+      comment is now only partially accurate and the feature is worth
+      re-verifying before any attempt to de-duplicate pins.
+    - `ty` gates every push while still Beta (0.0.x, latest 0.0.86, unstable
+      diagnostics). The lockfile pins it; keep the version at or above 0.0.84
+      (which fixed GHSA-vxvm-j4xq-q7m4) and gate upgrades through PRs.
+
+    Efficiency and duplication:
+
+    - Action pins repeat per job: `actions/checkout` in five workflow files,
+      `actions/setup-python` in five, `astral-sh/setup-uv` in three. Anchors
+      would centralize them but are empirically unreliable here (above).
+    - The canonical gate runs twice on a release: `ci.yml` triggers on the
+      `v*.*.*` tag *and* `release.yml`'s `verify-release` re-runs the gate.
+    - `shellcheck` runs in `ci.yml` and `release.yml` but not in
+      `.githooks/pre-commit`, so a shellcheck failure is invisible to the local
+      gate and only surfaces in CI.
+    - `downstream-check.yml` exercises a network `uvx --from git+…@sha` install
+      on every push and pull request, adding cost and flakiness surface.
+
+    Coverage: the repository configures no coverage tooling (no `pytest-cov`,
+    no `[tool.coverage]` section). A measured run
+    (`coverage run --source=ai_repo_sanitize,scripts`) reports 67% total (937
+    statements, 313 missed). The largest untested surfaces are `cli.py` 64%
+    (the whole `rewrite` CLI branch and the text output paths), `pipeline.py`
+    79% (the safety-gate error paths), `platform.py` 69% (contributors API,
+    token headers, `toggle_default_branch`), and the scripts at 35–73%. Since
+    the runtime is stdlib-only, coverage measures the test thoroughness of this
+    project's own logic. It is recorded here as a prioritization signal, not as
+    a target: consistent with `ROADMAP.md` ("Behavior-completeness contract"),
+    a blanket line-coverage percentage is deliberately not adopted because a
+    percentage cannot prove the backup, unchanged-tree, residual-scan, or
+    explicit-push guarantees. The untested surfaces above identify where that
+    contract should focus.
+
+    Sources: GitHub Actions secure use (pinning third-party actions to a
+    full-length SHA), <https://docs.github.com/en/actions/reference/security/secure-use#using-third-party-actions>;
+    OpenSSF Scorecard `Pinned-Dependencies`, <https://github.com/ossf/scorecard/blob/main/docs/checks.md#pinned-dependencies>;
+    workflow concurrency, <https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency>;
+    reusable workflows, <https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows>;
+    Actions YAML-anchor changelog, <https://github.blog/changelog/2025-09-18-actions-yaml-anchors-and-non-public-workflow-templates/>;
+    checkout credential handling changelog, <https://github.blog/changelog/2026-06-18-safer-pull_request_target-defaults-for-github-actions-checkout/>;
+    Actions billing (matrix = one billed job per combination),
+    <https://docs.github.com/en/billing/concepts/product-billing/github-actions>;
+    preventing pwn requests (`persist-credentials: false`), <https://securitylab.github.com/resources/github-actions-preventing-pwn-requests/>;
+    coverage.py configuration, <https://coverage.readthedocs.io/en/latest/config.html>;
+    pytest-cov, <https://pytest-cov.readthedocs.io/en/latest/>;
+    GitHub code coverage, <https://docs.github.com/en/code-security/how-tos/maintain-quality-code/set-up-code-coverage>;
+    ruff configuration, <https://docs.astral.sh/ruff/configuration/>;
+    ruff rule selection, <https://docs.astral.sh/ruff/linter/#rule-selection>;
+    ty installation, <https://docs.astral.sh/ty/installation/>;
+    ty type checking, <https://docs.astral.sh/ty/type-checking/>;
+    ty version policy (Beta), <https://github.com/astral-sh/ty#version-policy>;
+    ty beta announcement, <https://astral.sh/blog/ty>. Audited 2026-10-12.
+
+24. **Configuration audit dispositions (2026-10-12)** - the follow-up to item
+    23, recording what changed and what was deliberately retained. Fixed:
+    (a) the `contributors snapshot` line in `cli.py` no longer relies on `+`
+    binding tighter than `or` (the `(empty)` branch was dead), so an empty
+    snapshot now prints the `(empty)` marker with a regression test;
+    (b) the unreferenced `git_utils.full_messages` and `git_utils.branch_exists`
+    helpers were removed;
+    (c) the `ci.yml` header and `MAINTENANCE.md` no longer assert that GitHub
+    Actions does not support YAML anchors at all - they state that anchors are
+    documented but empirically unreliable here (item 23c, RESEARCH.md §2);
+    (g) `.githooks/pre-commit` now shellchecks the hooks when `shellcheck` is on
+    `PATH`, guarded so the hook still adds no hard tool dependency (SECURITY.md
+    limits the required binaries to `git` and `gh`). Retained after review:
+    (d) `ty` stays the gate while pre-1.0 because the lockfile pins the exact
+    build and the floor is above the GHSA-vxvm-j4xq-q7m4 fix;
+    (e) action pins stay repeated per job (anchors are empirically unreliable
+    here, see §2);
+    (f) the canonical gate intentionally runs twice on a release - `ci.yml` on
+    the tag and `release.yml` independently before it gets write permission
+    (see §2);
+    (h) `downstream-check.yml` intentionally exercises the published `uvx`
+    entrypoint on every push and PR;
+    (i) no coverage tooling is added - the 67% figure is a prioritization
+    signal only, and `ROADMAP.md`'s behavior-completeness contract deliberately
+    rejects a blanket line-coverage target.
+
 ## 6. Reference URLs
 
 - man page: <https://manpages.debian.org/testing/git-filter-repo/git-filter-repo.1.en.html>
@@ -380,6 +482,24 @@ absent); awesome-agent-trust has no hooks at all.
 - uv tools guide (`uvx` = `uv tool run`; `--from` sources): <https://docs.astral.sh/uv/guides/tools/>
 - uv CLI reference (tool commands): <https://docs.astral.sh/uv/reference/cli/>
 - astral-sh/setup-uv: <https://github.com/astral-sh/setup-uv>
+- GitHub Actions secure use (pin third-party actions by full-length SHA): <https://docs.github.com/en/actions/reference/security/secure-use>
+- OpenSSF Scorecard Pinned-Dependencies check: <https://github.com/ossf/scorecard/blob/main/docs/checks.md#pinned-dependencies>
+- GitHub Actions control workflow concurrency: <https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency>
+- GitHub Actions reusing workflow configurations (reusable workflows, composite actions): <https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows>
+- GitHub Actions YAML anchors/aliases changelog (2025-09-18): <https://github.blog/changelog/2025-09-18-actions-yaml-anchors-and-non-public-workflow-templates/>
+- GitHub Actions checkout safer pull_request_target defaults changelog (2026-06-18): <https://github.blog/changelog/2026-06-18-safer-pull_request_target-defaults-for-github-actions-checkout/>
+- GitHub Actions billing (per-job matrix cost): <https://docs.github.com/en/billing/concepts/product-billing/github-actions>
+- GitHub Security Lab, preventing pwn requests (`persist-credentials: false`): <https://securitylab.github.com/resources/github-actions-preventing-pwn-requests/>
+- coverage.py configuration reference: <https://coverage.readthedocs.io/en/latest/config.html>
+- pytest-cov: <https://pytest-cov.readthedocs.io/en/latest/>
+- GitHub code coverage (upload-code-coverage): <https://docs.github.com/en/code-security/how-tos/maintain-quality-code/set-up-code-coverage>
+- python-coverage-comment-action (alternative, no third-party server): <https://github.com/py-cov-action/python-coverage-comment-action>
+- Ruff configuration (target-version inference, per-file-ignores): <https://docs.astral.sh/ruff/configuration/>
+- Ruff rule selection (recommended rule set): <https://docs.astral.sh/ruff/linter/#rule-selection>
+- ty installation: <https://docs.astral.sh/ty/installation/>
+- ty type checking: <https://docs.astral.sh/ty/type-checking/>
+- ty version policy (Beta): <https://github.com/astral-sh/ty#version-policy>
+- ty beta announcement: <https://astral.sh/blog/ty>
 
 ## 7. Future research (queued 2026-10-09)
 
