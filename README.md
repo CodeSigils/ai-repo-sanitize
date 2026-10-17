@@ -211,6 +211,22 @@ the pre-commit hook drift from the canonical commands, or when an internal
 link breaks. If a command above stops being the truth, the repository tells
 you instead of the docs silently rotting.
 
+Additional hook and CI checks have different triggers and inputs; they are not
+all part of the local gate above:
+
+```bash
+uv run python scripts/check-commit-messages.py --base "$BASE" --head "$HEAD"  # CI commit range
+uv run python scripts/check-doc-claims.py  # pre-commit and CI
+uv run python scripts/check-doc-coverage.py --base "$BASE" --head "$HEAD"  # CI advisory
+python3 scripts/verify-urls.py  # scheduled/manual external URL audit
+python3 scripts/check-pr-hygiene.py  # scheduled/manual PR report
+python3 scripts/check-pr-readiness.py "$PR_NUMBER"  # manual check before a requested merge
+```
+
+Set `BASE` and `HEAD` to the commit range and `PR_NUMBER` to the pull request
+number. PR checks require GitHub access; the readiness check supports
+`--require-approval` when maintainer policy requires it.
+
 ### Exit codes
 
 | Code | Meaning |
