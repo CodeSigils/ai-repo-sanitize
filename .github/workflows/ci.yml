@@ -41,7 +41,21 @@ jobs:
         run: uv sync --locked
       - name: Commit-message policy on pushes
         if: github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000' && github.ref_type == 'branch'
-        run: uv run python scripts/check-commit-messages.py --base "${{ github.event.before }}" --head "${{ github.sha }}"
+        env:
+          BEFORE: ${{ github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+          HEAD_AUTHOR: ${{ github.event.head_commit.author.name }}
+        # Squash-merged Dependabot PRs land as commits authored by
+        # dependabot[bot] with no what/why labels; the pull-request path below
+        # already exempts them from body labels (never from attribution
+        # checks), so the push path mirrors that exemption via the head
+        # commit's author. Found by the first bot merge cycle (2026-10-20).
+        run: |
+          if [ "$HEAD_AUTHOR" = "dependabot[bot]" ]; then
+            uv run python scripts/check-commit-messages.py --base "$BEFORE" --head "$HEAD_SHA" --allow-bodyless
+          else
+            uv run python scripts/check-commit-messages.py --base "$BEFORE" --head "$HEAD_SHA"
+          fi
       - name: Commit-message policy on pull requests
         if: github.event_name == 'pull_request'
         env:

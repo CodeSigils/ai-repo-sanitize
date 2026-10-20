@@ -6,7 +6,7 @@
 > or the canonical command set must update this file, `RESEARCH.md`, and
 > `ANTIDRIFT.md` in the same commit.
 >
-> Last reviewed: 2026-10-12 (owner: @CodeSigils)
+> Last reviewed: 2026-10-20 (owner: @CodeSigils)
 
 ## How to read this roadmap
 
@@ -115,7 +115,10 @@ Completed for v0.4 (2026-10-09 – 2026-10-11):
   range in the `quality` CI job. It rejects AI-attribution trailers and
   requires a non-empty `what:` / `why:` rationale for implementation,
   configuration, and workflow prefixes. Dependabot may omit labels but is
-  never exempt from attribution detection.
+  never exempt from attribution detection. Fix (2026-10-20): the push path
+  gained the same Dependabot body-label exemption the pull-request path
+  already had; the first bot squash-merge cycle exposed the asymmetry when
+  all three merged commits turned master's validate run red.
 - **Live pre-merge readiness gate** — `scripts/check-pr-readiness.py` and the
   manual `pr readiness` workflow inspect one PR immediately before a requested
   merge. They are read-only and fail for stale merge conditions; approval is
