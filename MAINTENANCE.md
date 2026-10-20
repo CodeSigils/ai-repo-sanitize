@@ -1,6 +1,6 @@
 # Maintenance
 
-> Last reviewed: 2026-10-12
+> Last reviewed: 2026-10-20
 
 Operational guide for maintainers of `ai-repo-sanitize`. For contribution
 workflow see [CONTRIBUTING.md](CONTRIBUTING.md); for security matters see
@@ -74,6 +74,30 @@ Dependabot proposes grouped weekly updates for the uv toolchain and GitHub
 Actions per `.github/dependabot.yml`; merge its PRs only after the canonical
 gate passes. The two-PR cap bounds review load, but it is not a freshness
 signal: an open PR can prevent newer updates without failing CI.
+
+First merge cycle (2026-10-20): `setup-uv` 10.3.0, `ruff` 0.17.1, and
+`ty` 0.0.89 landed as squash merges; Dependabot auto-closed the stale
+single-`ty` PR and reopened the bump as one grouped PR, which is expected
+regrouping after a mid-cycle merge, not an error. Squash-merging a bot PR
+pushes a `dependabot[bot]`-authored commit, so the `quality` job's push-path
+commit-message check now exempts that author from body labels (see the CI
+layout section); master's validate run was red on 2026-10-20 until that
+exemption landed. With Dependabot security updates enabled the same day,
+watch whether security-update PRs actually appear — the sibling repository
+went months with the feature on and zero security PRs.
+
+### Code security posture
+
+All platform security features were enabled on 2026-10-20 and should stay on:
+Dependabot alerts and security updates, malware alerts, secret scanning with
+push protection, CodeQL default setup (Python, GitHub Actions runner,
+alerts-only), and private vulnerability reporting. [SECURITY.md](SECURITY.md)
+directs reporters to the private form, so disabling private reporting would
+break that promise. Scanning is platform-side (CodeQL default setup, secret
+scanning, push protection, malware alerts); the repo-side layer is the
+canonical gate itself. Non-provider secret patterns and validity checks stay
+off. Grouped security updates stay off — the dev-tooling surface is small
+enough that per-PR review is fine.
 
 ### Pull-request hygiene
 
@@ -172,7 +196,8 @@ breaks anything.
 - **quality** — `uv sync --locked`, shellcheck the hooks, then the
   canonical gate: `ruff check .`, `ty check`, `pytest`, `validate-docs.py`;
   it checks each newly introduced commit for attribution trailers and required
-  rationale labels (Dependabot is exempt from labels only);
+  rationale labels (Dependabot is exempt from body labels on the push and
+  pull-request paths alike, never from attribution checks);
   a datadef-style doc-coverage step warns (never fails) when a code change
   ships without a matching docs change; a codocia-class claims check fails
   when a doc references a backticked repo path that does not exist;
