@@ -1,14 +1,14 @@
 # ai-repo-sanitize
 
-> Last reviewed: 2026-10-12
+> Last reviewed: 2026-10-28
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![CI](https://github.com/CodeSigils/ai-repo-sanitize/actions/workflows/ci.yml/badge.svg)](https://github.com/CodeSigils/ai-repo-sanitize/actions/workflows/ci.yml)
 
 Safely strip AI attribution trailers from git history — preview, rewrite,
-verify, publish. A `check` mode for CI, a `rewrite` mode that never pushes
-unless you say so, and a commit-msg hook that keeps new trailers out of this
-repository's own commits.
+verify, publish. A `check` mode supports CI, and a `rewrite` mode never pushes
+unless you say so. This repository's contributor tooling also has a
+commit-message hook that keeps new trailers out of its own commits.
 
 An *attribution trailer* is a line such as
 `Co-authored-by: Claude <noreply@anthropic.com>` or `Generated with ...`
@@ -20,17 +20,15 @@ pass the explicit flags.
 ## Why this repo
 
 A live blog post documented what happens when an AI agent signs your commits:
-GitHub's contributors widget listed the agent beside the author, the commit
-history carried a `Co-authored-by:` trailer and a "Ultraworked with ..."
-branding line, and hundreds of similar complaints were filed against coding
-agents. The cleanup sequence the article develops — backup, preview,
-message-only rewrite, tree verification, force-with-lease push — is exactly
-what this tool automates, with the safety gates made mandatory instead of
-optional.
+GitHub's contributors widget listed the agent beside the author, and the commit
+history carried a `Co-authored-by:` trailer plus an "Ultraworked with ..."
+branding line. This tool is the supported, repeatable remedy for that incident:
+it makes backup, preview, message-only rewrite, tree verification, and an
+explicit force-with-lease push decision part of one checked process.
 
-- Article: [When an AI Agent Signs Your Commits](https://codesigils.github.io/AI/Agent-Work/when-an-ai-signs-your-commits/#the-whole-sequence-as-an-example)
+- Article: [When an AI Agent Signs Your Commits](https://codesigils.github.io/AI/Agent-Work/when-an-ai-signs-your-commits/#a-safer-recovery-process)
 - The removal pattern this tool applies is the single source of truth in
-  [`src/ai_repo_sanitize/patterns.py`](src/ai_repo_sanitize/patterns.py), mirrored by the article's example.
+  [`src/ai_repo_sanitize/patterns.py`](src/ai_repo_sanitize/patterns.py).
 
 ## Design principles
 
@@ -89,7 +87,7 @@ For local development, run `uv tool install .` (or `pip install .`) from a
 clone. Install `git-filter-repo` separately with `uv tool install
 git-filter-repo` only if you will use `rewrite`.
 
-The sanitizer's runtime is stdlib-only: `check`, `preview`, and `hook` do not
+The sanitizer's runtime is stdlib-only: `check` and `preview` do not
 need [git-filter-repo](https://github.com/newren/git-filter-repo).
 `rewrite` delegates its history rewrite to that external executable, so it is
 the supported rewrite mechanism and fails with an install hint when absent.

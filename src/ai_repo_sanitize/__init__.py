@@ -6,8 +6,6 @@ Three modes, one pattern library:
 - ``preview``  list commits a rewrite would change, before changing anything
 - ``rewrite``  mirror-backup, filter-repo message rewrite, verify, and
                force-with-lease push (push only when explicitly requested)
-- ``hook``     emit commit-msg / pre-commit templates derived from the same
-               patterns used by every other mode
 """
 
 __version__ = "0.1.0"
