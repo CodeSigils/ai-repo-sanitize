@@ -38,7 +38,7 @@ jobs:
       - name: Run the one-step check against disposable repositories
         shell: bash
         env:
-          TOOL_SPEC: git+https://github.com/CodeSigils/ai-repo-sanitize@${{ github.sha }}
+          TOOL_SPEC: git+https://github.com/CodeSigils/ai-repo-sanitize@${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           set -euo pipefail
 
