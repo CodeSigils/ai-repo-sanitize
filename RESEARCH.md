@@ -1,6 +1,6 @@
 # Research and Decisions (RESEARCH.md)
 
-Last reviewed: 2026-10-12. Reference document: cites the external sources and records the
+Last reviewed: 2026-10-31. Reference document: cites the external sources and records the
 design decisions built on them. Per the [ANTIDRIFT code-changes rule](ANTIDRIFT.md), re-verify
 this file when `patterns.py`, `cli.py`, or the canonical validation commands change.
 
@@ -111,6 +111,7 @@ this file when `patterns.py`, `cli.py`, or the canonical validation commands cha
 | andimrob/docrot | `last_reviewed` frontmatter + interval / until_date / **code_changes** strategies | code-changes rule adopted now; interval gate queued for v0.2 |
 | codocia (docs.rs) | docs drift checker FOR agents: `covers` patterns + snapshot hashes; "docs are source of truth" | patterns/checker idea adopted conceptually; tool itself overkill now |
 | GitLab technical-writing/markdown-link-check | lychee-powered CI component, `--offline --include-fragments` | corroborates schedule-based link checking |
+| CodeSigils skill-catalogue / Addy Osmani agent-skills / GitHub Docs | no catalogue entry yet covered Markdown fragments; the local `agent-skills` validator checks GitHub-style heading slugs and duplicate suffixes; GitHub documents the same lowercasing, punctuation removal, spacing, and duplicate-heading rules | extend the stdlib docs validator with GitHub-compatible fragment checks and regression tests; retain no additional dependency |
 
 Key quote governing the whole strategy (datadef.io): *"CI detects proxies for outdatedness
 rather than outdatedness itself."*
@@ -163,8 +164,8 @@ absent); awesome-agent-trust has no hooks at all.
 7. **The docs contract.** `scripts/validate-docs.py` (logic rewritten from py-review-skill's
    `validate-readme.py` pattern, CC-BY-4.0 terms of that repo): README and CONTRIBUTING must
    list the 4 canonical commands verbatim; ci.yml must run them verbatim (a plain substring
-   check — that is why ci.yml never uses `--no-sync`); required docs exist; internal links
-   resolve.
+   check — that is why ci.yml never uses `--no-sync`); the hook runs its defined fast suite;
+   required docs exist; internal links and GitHub-style heading fragments resolve.
 
 8. **Dependency updates stay GitHub-native and group-gated** — Dependabot
    (`.github/dependabot.yml`) proposes weekly grouped updates: action pins
@@ -450,6 +451,9 @@ absent); awesome-agent-trust has no hooks at all.
 - docrot: <https://pkg.go.dev/github.com/andimrob/docrot> (GitHub source 404s since 2026-10; the pkg.go.dev snapshot of v0.1.1 is the durable reference)
 - codocia: <https://docs.rs/codocia>
 - GitLab markdown-link-check component: <https://gitlab.com/gitlab-org/technical-writing/markdown-link-check>
+- CodeSigils skill-catalogue review: no prior Markdown-fragment finding as of 2026-10-31
+- Addy Osmani agent-skills fragment validator: <https://github.com/addyosmani/agent-skills/blob/main/scripts/validate-reference-links.js>
+- GitHub Markdown heading-link rules: <https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#section-links>
 - declaudify: <https://github.com/ParkerrDev/declaudify>
 - git-attribution: <https://github.com/Londopy/git-attribution>
 - GitHub Actions YAML anchors feature request: <https://github.com/actions/runner/issues/1182>

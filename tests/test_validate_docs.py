@@ -53,7 +53,15 @@ class ValidatorFixture(unittest.TestCase):
         hooks = self.root / ".githooks"
         hooks.mkdir()
         (hooks / "pre-commit").write_text(
-            "uv run ruff check .\nuv run python scripts/validate-docs.py\n",
+            "\n".join(
+                (
+                    "uv run ruff check .",
+                    "uv run ty check",
+                    "uv run python scripts/validate-docs.py",
+                    "uv run python scripts/check-doc-claims.py",
+                    "",
+                )
+            ),
             encoding="utf-8",
         )
 
@@ -70,6 +78,7 @@ class ValidatorFixture(unittest.TestCase):
         for name in self.REQUIRED:
             if name in missing:
                 continue
+            (self.root / name).parent.mkdir(parents=True, exist_ok=True)
             reviewed = "2000-01-01" if name in stale else today
             body = [f"> Last reviewed: {reviewed}", "", "# Doc", ""]
             if name in ("README.md", "CONTRIBUTING.md"):
@@ -163,6 +172,40 @@ class FindingsTest(ValidatorFixture):
         with readme.open("a", encoding="utf-8") as handle:
             handle.write('[cfg](CONTRIBUTING.md "contributing guide")\n')
             handle.write("[sec](<SECURITY.md>)\n")
+            handle.write("[gate](CONTRIBUTING.md#doc)\n")
+        self.assertEqual(self.run_findings(today=date.today()), [])
+
+    def test_missing_anchor_fails(self) -> None:
+        self._write_docs()
+        readme = self.root / "README.md"
+        with readme.open("a", encoding="utf-8") as handle:
+            handle.write("[gate](CONTRIBUTING.md#canonical-validation-gate)\n")
+        problems = self.run_findings(today=date.today())
+        self.assertTrue(
+            any("anchor does not exist in CONTRIBUTING.md" in problem for problem in problems),
+            problems,
+        )
+
+    def test_duplicate_heading_anchors_follow_github_suffixes(self) -> None:
+        self._write_docs()
+        contributing = self.root / "CONTRIBUTING.md"
+        with contributing.open("a", encoding="utf-8") as handle:
+            handle.write("## Example\n\n## Example\n")
+        readme = self.root / "README.md"
+        with readme.open("a", encoding="utf-8") as handle:
+            handle.write("[second example](CONTRIBUTING.md#example-1)\n")
+        self.assertEqual(self.run_findings(today=date.today()), [])
+
+    def test_anchor_slug_follows_github_heading_rules(self) -> None:
+        self._write_docs()
+        contributing = self.root / "CONTRIBUTING.md"
+        with contributing.open("a", encoding="utf-8") as handle:
+            handle.write("## This'll be a _Helpful_ Section About the Greek Letter Θ!\n")
+        readme = self.root / "README.md"
+        with readme.open("a", encoding="utf-8") as handle:
+            handle.write(
+                "[heading](CONTRIBUTING.md#thisll-be-a-helpful-section-about-the-greek-letter-θ)\n"
+            )
         self.assertEqual(self.run_findings(today=date.today()), [])
 
     def test_fenced_fake_link_not_flagged(self) -> None:

@@ -1,8 +1,12 @@
 # Anti-Drift Strategy (ANTIDRIFT.md)
 
-Last reviewed: 2026-10-12. Re-verify per the [code-changes rule](#the-code-changes-rule): when
-`src/ai_repo_sanitize/patterns.py`, `src/ai_repo_sanitize/cli.py`, or the canonical validation
-commands change, re-read this file and `RESEARCH.md` and update anything stale in the same commit.
+Last reviewed: 2026-10-31. This is an explanation of the repository's
+anti-drift design. For the current procedures, use [CONTRIBUTING.md](CONTRIBUTING.md),
+[MAINTENANCE.md](MAINTENANCE.md), and [AGENTS.md](AGENTS.md).
+
+Re-verify this explanation and [RESEARCH.md](RESEARCH.md) when
+`src/ai_repo_sanitize/patterns.py`, `src/ai_repo_sanitize/cli.py`, or the
+canonical validation gate changes.
 
 ## 1. Why this file exists
 
@@ -20,9 +24,9 @@ re-review a scheduled, named duty for the rest.
 
 | Layer | Mechanism | Catches |
 | --- | --- | --- |
-| 0. Hooks | `.githooks/commit-msg` (attribution patterns), `.githooks/pre-commit` (ruff + docs validator) | bad commit messages and doc regressions before they enter history |
-| 1. Contract | `scripts/validate-docs.py`: README + CONTRIBUTING must list the 4 canonical commands verbatim; `ci.yml` must run them verbatim; required docs exist; internal links resolve | doc/command drift, missing or dead-linked docs |
-| 2. Canonical gate | `uv run ty check` / `uv run ruff check .` / `uv run pytest` / `uv run python scripts/validate-docs.py` — referenced in AGENTS.md, CONTRIBUTING.md, MAINTENANCE.md and enforced in CI | any change that breaks the project's own contract |
+| 0. Hooks | `.githooks/commit-msg` (attribution patterns), `.githooks/pre-commit` (ruff, ty, docs validator, doc-claims) | bad commit messages and fast local regressions before they enter history |
+| 1. Contract | `scripts/validate-docs.py`: README + CONTRIBUTING mirror the 4 canonical commands; `ci.yml` runs them verbatim; the hook runs its defined fast suite; required docs, internal links, and Markdown fragments resolve | doc/command drift, missing or dead-linked docs |
+| 2. Canonical gate | The [canonical validation gate](CONTRIBUTING.md#canonical-validation-gate), indexed in README.md and enforced in CI | any change that breaks the project's own contract |
 | 3. CI | `ci.yml`: full gate on every push to `master`, tag push, and PR; `url-audit.yml` runs `scripts/verify-urls.py` weekly and on manual dispatch, separately from cancelable push validation. Its doc-coverage warning compares the triggering push/PR range rather than the checked-out branch tip. | stale external references, third-party rot |
 | 4. Single source of truth | `src/ai_repo_sanitize/patterns.py` defines the attribution pattern once; check, preview, rewrite and the hook all derive from it | the check/rewrite/hook disagreeing with each other |
 
@@ -63,8 +67,9 @@ a standing, mechanical rule (docrot's `code_changes` strategy; codocia's `covers
 
 - Any change to `src/ai_repo_sanitize/patterns.py` or `src/ai_repo_sanitize/cli.py` triggers
   re-verification of ANTIDRIFT.md, RESEARCH.md and ROADMAP.md in the same commit.
-- Any change to the canonical validation commands (CONTRIBUTING.md/validate-docs.py/ci.yml)
-  triggers the same re-verification.
+- Any change to the canonical validation gate triggers the same
+  re-verification. `CONTRIBUTING.md` owns its procedure; this file explains
+  why the guard exists.
 - CI warns (does not fail) when a change under `src/` or `scripts/` has no matching change under
   `docs/` or root `*.md` files — warnings first; a hard fail invites token edits (datadef).
 - External research is a documentation input: when a web search, official documentation, or
@@ -95,9 +100,9 @@ These are deliberately NOT adopted for this repo (evidence in RESEARCH.md):
 
 ## 8. Success metrics
 
-- `uv run python scripts/validate-docs.py` passes on every change (it is part of the gate).
+- The canonical validation gate in `CONTRIBUTING.md` passes on every change.
 - The weekly CI run reports zero dead external links.
-- The canonical commands listed in README.md and CONTRIBUTING.md never diverge from `ci.yml`
-  or `.githooks/pre-commit` (enforced by Layer 1).
+- The canonical gate in README.md and CONTRIBUTING.md never diverges from `ci.yml`; the
+  pre-commit hook retains its separately defined fast suite (enforced by Layer 1).
 - Every roadmap item in ROADMAP.md names the ANTIDRIFT check that keeps it honest.
 - No commit in this repository has ever carried an AI-attribution trailer (Layer 0).
