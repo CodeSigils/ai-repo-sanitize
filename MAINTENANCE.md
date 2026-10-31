@@ -1,11 +1,21 @@
 # Maintenance
 
-> Last reviewed: 2026-10-20
+> Last reviewed: 2026-10-31
 
 Operational guide for maintainers of `ai-repo-sanitize`. For contribution
 workflow see [CONTRIBUTING.md](CONTRIBUTING.md); for security matters see
 [SECURITY.md](SECURITY.md); for the anti-drift strategy see
 [ANTIDRIFT.md](ANTIDRIFT.md).
+
+## Sources of truth
+
+- **Agent guidance:** [AGENTS.md](AGENTS.md)
+- **Contribution workflow:** [CONTRIBUTING.md](CONTRIBUTING.md)
+- **Security policy:** [SECURITY.md](SECURITY.md)
+- **Anti-drift strategy:** [ANTIDRIFT.md](ANTIDRIFT.md)
+- **Roadmap/research:** [ROADMAP.md](ROADMAP.md), [RESEARCH.md](RESEARCH.md)
+- **CI/workflows:** [.github/workflows/](.github/workflows/)
+- **Hooks:** [.githooks/](.githooks/)
 
 ## Daily operations
 
@@ -276,6 +286,34 @@ Maintainers who run it on a real repository should remember:
 | commit-msg rejects a legit message | Message matches the AI-trailer pattern | If truly a human co-author, adjust the message so the name token differs (see the pattern trade-off in SECURITY.md); never blanket `--no-verify` |
 | `git filter-repo` not found at runtime | Tool installed outside the active env | Install it: `uv tool install git-filter-repo` (or `pip install git-filter-repo`) |
 | Push fails with SSH | SSH key not configured or rotated | Fall back to HTTPS + token once: `gh auth setup-git`, `git remote set-url origin https://github.com/CodeSigils/ai-repo-sanitize`, push, then restore the SSH URL |
+
+## Automation
+
+- **GitHub Actions:** [.github/workflows/ci.yml](.github/workflows/ci.yml)
+  - `quality` (push to `master`/PR): runs canonical gate (`ruff check`, `ty check`, `pytest`, `validate-docs.py`), doc-claims check, commit-message/attribution checks (Dependabot exempt from body labels), and warns on doc-coverage gaps. Shellchecks hooks.
+  - `python-compat` (push/PR): matrix Python 3.10–3.14 (stdlib runner); rewrite e2e skipped without uv/git-filter-repo.
+  - `pr-hygiene` (schedule/manual): read-only, checks Dependabot PRs open ≥7 days or review debt ≥14 days; never comments/labels/closes/merges.
+  - `pr-readiness` (manual `workflow_dispatch`): read-only pre-merge check per PR (mergeability/checks/approval optional).
+- **URL audit:** [.github/workflows/url-audit.yml](.github/workflows/url-audit.yml) — weekly + manual dispatch; runs `scripts/verify-urls.py` (HEAD/GET fallback, retry, dedup).
+- **Release:** [.github/workflows/release.yml](.github/workflows/release.yml) — tag-driven `v*.*.*`, verifies tag reachable from `master`, reruns canonical gate, builds with `uv build`, creates GitHub Release.
+- **Dependency updates:** [.github/dependabot.yml](.github/dependabot.yml) — weekly grouped updates for `github-actions` and `uv` (2-PR cap). Security updates enabled separately (per-PR review).
+- **Git hooks:** [.githooks/](.githooks/)
+  - `pre-commit`: `ruff check`, `ty check`, docs validator, doc-claims check
+  - `commit-msg`: `scripts/check-commit-messages.py` (rejects AI-attribution trailers; requires `what:`/`why:` for implementation/config types)
+- **Branch protection:** `master` is PR-only with required status checks; direct pushes blocked. Read CI/workflows as source of truth.
+
+## Volatility
+
+**High** — enforce strict commit policy (no AI-attribution), gate drift, Dependabot grouping, PR hygiene/readiness, weekly URL audit, and tag-driven releases. Inspect CI and PRs daily; preflight high-volatility writes.
+
+## Escalation
+
+- **Policy/gates:** Changes to AI-attribution regex/policy, commit-message rules, canonical gate, or `scripts/validate-docs.py`/`check-doc-claims.py`
+- **CI/workflows:** Workflow YAML issues (anchors/aliases), Action pin updates (must update all occurrences), runner changes, required check changes
+- **Security/compliance:** Dependabot/security updates, secret scanning/push protection, CodeQL, private vulnerability reporting changes
+- **Rewrite/safety:** `rewrite` flow changes, filter-repo behavior, backup/push safety, or contributor cache nudging
+- **Dependencies:** `git-filter-repo` placement/grouping, `uv.lock`/`pyproject.toml` toolchain bumps affecting hooks/CI
+- **Docs drift:** README/CONTRIBUTING/ci.yml desync detected by `validate-docs.py`
 
 ## Logging and state
 
