@@ -217,6 +217,63 @@ class FindingsTest(ValidatorFixture):
             handle.write("```\n")
         self.assertEqual(self.run_findings(today=date.today()), [])
 
+    def test_reference_links_entities_and_emphasis_are_rendered_before_slugging(self) -> None:
+        self._write_docs()
+        contributing = self.root / "CONTRIBUTING.md"
+        with contributing.open("a", encoding="utf-8") as handle:
+            handle.write("## See [Linked text][ref]\n\n")
+            handle.write("## A &amp; B\n\n")
+            handle.write("## __Bold__\n\n")
+            handle.write("[ref]: https://example.com\n")
+        readme = self.root / "README.md"
+        with readme.open("a", encoding="utf-8") as handle:
+            handle.write("[reference](CONTRIBUTING.md#see-linked-text)\n")
+            handle.write("[entity](CONTRIBUTING.md#a--b)\n")
+            handle.write("[bold](CONTRIBUTING.md#bold)\n")
+        self.assertEqual(self.run_findings(today=date.today()), [])
+
+    def test_tilde_fence_heading_is_not_an_anchor(self) -> None:
+        self._write_docs()
+        contributing = self.root / "CONTRIBUTING.md"
+        with contributing.open("a", encoding="utf-8") as handle:
+            handle.write("~~~text\n## Fake\n~~~\n\n## Real\n")
+        readme = self.root / "README.md"
+        with readme.open("a", encoding="utf-8") as handle:
+            handle.write("[real](CONTRIBUTING.md#real)\n")
+            handle.write("[fake](CONTRIBUTING.md#fake)\n")
+        problems = self.run_findings(today=date.today())
+        self.assertEqual(
+            [p for p in problems if "#fake" in p],
+            ["README.md: anchor does not exist in CONTRIBUTING.md: #fake"],
+        )
+        self.assertFalse(any("#real" in p for p in problems), problems)
+
+    def test_fence_length_must_match_or_exceed_opening(self) -> None:
+        self._write_docs()
+        contributing = self.root / "CONTRIBUTING.md"
+        with contributing.open("a", encoding="utf-8") as handle:
+            handle.write("````\n```\n## Fake\n````\n\n## Real\n")
+        readme = self.root / "README.md"
+        with readme.open("a", encoding="utf-8") as handle:
+            handle.write("[real](CONTRIBUTING.md#real)\n")
+            handle.write("[fake](CONTRIBUTING.md#fake)\n")
+        problems = self.run_findings(today=date.today())
+        self.assertIn("README.md: anchor does not exist in CONTRIBUTING.md: #fake", problems)
+        self.assertFalse(any("#real" in p for p in problems), problems)
+
+    def test_fence_info_string_does_not_close_block(self) -> None:
+        self._write_docs()
+        contributing = self.root / "CONTRIBUTING.md"
+        with contributing.open("a", encoding="utf-8") as handle:
+            handle.write("```\n```notclose\n## Fake\n```\n\n## Real\n")
+        readme = self.root / "README.md"
+        with readme.open("a", encoding="utf-8") as handle:
+            handle.write("[real](CONTRIBUTING.md#real)\n")
+            handle.write("[fake](CONTRIBUTING.md#fake)\n")
+        problems = self.run_findings(today=date.today())
+        self.assertIn("README.md: anchor does not exist in CONTRIBUTING.md: #fake", problems)
+        self.assertFalse(any("#real" in p for p in problems), problems)
+
 
 if __name__ == "__main__":
     unittest.main()

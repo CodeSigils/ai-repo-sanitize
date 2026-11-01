@@ -70,6 +70,15 @@ class ClaimsTests(unittest.TestCase):
         # repo-path tokens are.
         self.assertEqual(self.checker.findings(root=self.tmp), [])
 
+    def test_required_doc_inventory_matches_validate_docs(self) -> None:
+        script = Path(__file__).resolve().parent.parent / "scripts" / "validate-docs.py"
+        spec = importlib.util.spec_from_file_location("validate_docs", script)
+        assert spec is not None and spec.loader is not None
+        validator = importlib.util.module_from_spec(spec)
+        assert validator is not None
+        spec.loader.exec_module(validator)
+        self.assertEqual(self.checker.REQUIRED_DOCS, validator.REQUIRED_DOCS)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,6 +1,6 @@
 # Contributing
 
-> Last reviewed: 2026-10-31
+> Last reviewed: 2026-11-01
 
 ai-repo-sanitize is a focused tool: it detects and removes AI-attribution
 trailers from git history, exposing every step so a maintainer can audit the
@@ -68,10 +68,13 @@ and `tests/test_cli.py` in the same change.
 - `README.md` and this file must list every canonical command verbatim.
 - `.github/workflows/ci.yml` must run the same command strings (plain
   `uv run ...`; do not "optimize" with `--no-sync`).
-- Required docs exist (README, CONTRIBUTING, SECURITY, MAINTENANCE, RESEARCH,
-  ROADMAP, ANTIDRIFT, AGENTS.md, `docs/README.md`, and
-  `docs/tutorial-first-scan.md`).
-- Internal relative links resolve to real files.
+- Required docs exist. The authoritative list is `REQUIRED_DOCS` in
+  `scripts/validate-docs.py`; it currently covers README, CONTRIBUTING,
+  SECURITY, MAINTENANCE, RESEARCH, ROADMAP, ANTIDRIFT, AGENTS.md,
+  `docs/README.md`, and `docs/tutorial-first-scan.md`.
+- Internal relative links resolve to real files, and heading fragments resolve
+  to a heading in the target document (GitHub-style slugs; backtick and tilde
+  fenced code blocks are ignored).
 
 A behavior or command change therefore touches code *and* the docs that
 describe it in one commit. This is deliberate.

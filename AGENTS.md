@@ -1,6 +1,6 @@
 # AGENTS.md
 
-> Last reviewed: 2026-10-31
+> Last reviewed: 2026-11-01
 
 This file is the first stop for any agent (or maintainer) working in this
 repository. It points at the single source of truth for what ships, how to
@@ -26,7 +26,7 @@ or docs, run the [canonical validation gate](CONTRIBUTING.md#canonical-validatio
 
 - Docs and code must never drift apart: `scripts/validate-docs.py` enforces
   that README/CONTRIBUTING list every canonical command and that internal
-  links resolve. Run it whenever you touch docs.
+  links and heading fragments resolve. Run it whenever you touch docs.
 - Do not add AI-attribution trailers (`Co-authored-by:` / "X with" branding)
   to commit messages; the local hook and CI reject them.
 - Commit messages: lowercase conventional style (`feat:` / `docs:` / `fix:`),

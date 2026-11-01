@@ -1,21 +1,19 @@
 # Maintenance
 
-> Last reviewed: 2026-10-31
+> Last reviewed: 2026-11-01
 
 Operational guide for maintainers of `ai-repo-sanitize`. For contribution
 workflow see [CONTRIBUTING.md](CONTRIBUTING.md); for security matters see
 [SECURITY.md](SECURITY.md); for the anti-drift strategy see
 [ANTIDRIFT.md](ANTIDRIFT.md).
 
-## Sources of truth
+## Operational sources of truth
 
-- **Agent guidance:** [AGENTS.md](AGENTS.md)
-- **Contribution workflow:** [CONTRIBUTING.md](CONTRIBUTING.md)
-- **Security policy:** [SECURITY.md](SECURITY.md)
-- **Anti-drift strategy:** [ANTIDRIFT.md](ANTIDRIFT.md)
-- **Roadmap/research:** [ROADMAP.md](ROADMAP.md), [RESEARCH.md](RESEARCH.md)
+- **Agent routing and guardrails:** [AGENTS.md](AGENTS.md)
 - **CI/workflows:** [.github/workflows/](.github/workflows/)
 - **Hooks:** [.githooks/](.githooks/)
+- **Release and automation scripts:** [scripts/](scripts/)
+- **Document ownership:** [README maintainer ownership](README.md#maintainer-ownership)
 
 ## Daily operations
 
@@ -30,16 +28,14 @@ documentation set is incomplete, when README.md or CONTRIBUTING.md no longer
 mirror the canonical gate, when ci.yml stops running it in the same spelling,
 or when an internal link or heading fragment points nowhere. It also verifies
 the hook's defined fast suite, rather than claiming that the hook runs pytest.
-A passing run confirms:
+A passing run prints one line:
 
 ```
-PASS: all 10 required docs present
-PASS: README.md and CONTRIBUTING.md list every canonical command
-PASS: ci.yml runs every canonical command verbatim
-PASS: .githooks/pre-commit runs its documented fast suite
-PASS: all internal relative links and Markdown heading fragments resolve
-PASS: every required doc carries a current Last reviewed header
+validate-docs: PASS - docs and gates agree
 ```
+
+That one line means all of the checks above passed. Failures list each finding,
+so treat the first failing check as the place to start.
 
 ### Installing hooks
 
@@ -285,18 +281,17 @@ Maintainers who run it on a real repository should remember:
 
 ## Automation
 
-- **GitHub Actions:** [.github/workflows/ci.yml](.github/workflows/ci.yml)
-  - `quality` (push to `master`/PR): runs canonical gate (`ruff check`, `ty check`, `pytest`, `validate-docs.py`), doc-claims check, commit-message/attribution checks (Dependabot exempt from body labels), and warns on doc-coverage gaps. Shellchecks hooks.
-  - `python-compat` (push/PR): matrix Python 3.10–3.14 (stdlib runner); rewrite e2e skipped without uv/git-filter-repo.
-  - `pr-hygiene` (schedule/manual): read-only, checks Dependabot PRs open ≥7 days or review debt ≥14 days; never comments/labels/closes/merges.
-  - `pr-readiness` (manual `workflow_dispatch`): read-only pre-merge check per PR (mergeability/checks/approval optional).
-- **URL audit:** [.github/workflows/url-audit.yml](.github/workflows/url-audit.yml) — weekly + manual dispatch; runs `scripts/verify-urls.py` (HEAD/GET fallback, retry, dedup).
-- **Release:** [.github/workflows/release.yml](.github/workflows/release.yml) — tag-driven `v*.*.*`, verifies tag reachable from `master`, reruns canonical gate, builds with `uv build`, creates GitHub Release.
-- **Dependency updates:** [.github/dependabot.yml](.github/dependabot.yml) — weekly grouped updates for `github-actions` and `uv` (2-PR cap). Security updates enabled separately (per-PR review).
-- **Git hooks:** [.githooks/](.githooks/)
-  - `pre-commit`: `ruff check`, `ty check`, docs validator, doc-claims check
-  - `commit-msg`: `scripts/check-commit-messages.py` (rejects AI-attribution trailers; requires `what:`/`why:` for implementation/config types)
-- **Branch protection:** `master` is PR-only with required status checks; direct pushes blocked. Read CI/workflows as source of truth.
+Each surface is described above; this index points to the authoritative section
+rather than repeating it.
+
+- **CI jobs and triggers:** [CI layout](#ci-layout)
+- **URL audit:** [Weekly URL re-check](#weekly-url-re-check)
+- **Release:** [Releasing](#releasing)
+- **Dependency updates:** [Dependency refresh](#dependency-refresh) and [.github/dependabot.yml](.github/dependabot.yml)
+- **Git hooks:** [Installing hooks](#installing-hooks)
+- **Pull-request hygiene:** [Pull-request hygiene](#pull-request-hygiene)
+- **Pre-merge readiness:** [Pre-merge readiness](#pre-merge-readiness)
+- **Branch protection:** `master` is PR-only with required status checks; direct pushes blocked.
 
 ## Volatility
 

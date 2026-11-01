@@ -8,20 +8,29 @@ that repo; logic rewritten here). Enforces a small, verifiable contract:
 * Every required documentation file exists (docs inventory never silently
   shrinks).
 * Every internal relative link in the markdown docs resolves to a real file
-  (title/angle-bracket destinations supported; fenced code blocks are skipped).
+  and heading fragment (title/angle-bracket destinations supported; backtick
+  and tilde fenced code blocks are skipped).
 * Every required doc carries a current `Last reviewed: YYYY-MM-DD` header
   (missing, unparseable, future, or older than the 90-day window fails).
 * CI runs every canonical validation command. The pre-commit hook runs its
   documented fast local checks.
+
+Supported Markdown subset: ATX headings; inline, reference, collapsed, and
+shortcut links/images; HTML entities; emphasis/strong; backtick and tilde
+fences. Known limits: no nested-parenthesis inline destinations, no indented
+code blocks, no reference-style internal-link detection, and approximate
+CommonMark closing-fence semantics.
 
 Exit code 0 = contract holds; 1 = findings (printed with file references).
 """
 
 from __future__ import annotations
 
+import html
 import re
 import sys
 import unicodedata
+from collections.abc import Iterator
 from datetime import date
 from pathlib import Path
 from urllib.parse import unquote
@@ -64,11 +73,27 @@ _REVIEW_RE = re.compile(r"Last reviewed:\s*(\d{4}-\d{2}-\d{2})")
 _REVIEW_WINDOW_DAYS = 90
 
 
+def _rendered_heading_text(heading: str) -> str:
+    """Approximate the text GitHub renders before generating a heading slug.
+
+    GitHub slugs rendered text, not raw Markdown. Inline and reference-style
+    links contribute their visible text, images contribute their alt text,
+    HTML tags disappear, and HTML entities are decoded. Order matters: tags are
+    removed before entities are decoded so literal text such as ``&lt;div&gt;``
+    survives.
+    """
+    rendered = re.sub(r"<!--.*?-->", "", heading, flags=re.DOTALL)
+    rendered = re.sub(r"!?\[([^\]]*)\]\([^)]*\)", r"\1", rendered)
+    rendered = re.sub(r"!?\[([^\]]*)\]\[[^\]]*\]", r"\1", rendered)
+    rendered = re.sub(r"!?\[([^\]]*)\]", r"\1", rendered)
+    rendered = re.sub(r"<[^>]+>", "", rendered)
+    return html.unescape(rendered).strip()
+
+
 def _slugify_heading(heading: str) -> str:
     """Return the GitHub-style fragment generated for an ATX heading."""
-    rendered = re.sub(r"!?\[([^\]]*)\]\([^)]*\)", r"\1", heading)
-    rendered = re.sub(r"<[^>]+>", "", rendered).lower()
-    rendered = re.sub(r"(?<!\w)_([^_]+)_(?!\w)", r"\1", rendered)
+    rendered = _rendered_heading_text(heading).lower()
+    rendered = re.sub(r"(?<!\w)_{1,2}([^_]+)_{1,2}(?!\w)", r"\1", rendered)
     kept = "".join(
         character
         for character in rendered
@@ -79,17 +104,36 @@ def _slugify_heading(heading: str) -> str:
     return re.sub(r"\s", "-", kept)
 
 
+def _fence_marker(line: str) -> tuple[str, int, str] | None:
+    stripped = line.strip()
+    for marker in ("`", "~"):
+        if stripped.startswith(marker * 3):
+            length = len(stripped) - len(stripped.lstrip(marker))
+            return marker, length, stripped[length:]
+    return None
+
+
+def _unfenced_lines(markdown: str) -> Iterator[str]:
+    fence: tuple[str, int] | None = None
+    for line in markdown.splitlines():
+        marker = _fence_marker(line)
+        if fence is None:
+            if marker is not None:
+                char, length, _ = marker
+                fence = (char, length)
+                continue
+            yield line
+        elif marker is not None:
+            char, length, remainder = marker
+            if char == fence[0] and length >= fence[1] and not remainder.strip():
+                fence = None
+
+
 def _heading_anchors(markdown: str) -> set[str]:
     """Return GitHub-style anchors for ATX headings outside fenced code blocks."""
     anchors: set[str] = set()
     seen: dict[str, int] = {}
-    in_fence = False
-    for line in markdown.splitlines():
-        if line.strip().startswith("```"):
-            in_fence = not in_fence
-            continue
-        if in_fence:
-            continue
+    for line in _unfenced_lines(markdown):
         match = re.match(r"^ {0,3}#{1,6}[ \t]+(.*?)(?:[ \t]+#+)?[ \t]*$", line)
         if match is None:
             continue
@@ -152,13 +196,7 @@ def findings(
         if not path.is_file():
             continue
         text = path.read_text(encoding="utf-8")
-        in_fence = False
-        for line in text.splitlines():
-            if line.strip().startswith("```"):
-                in_fence = not in_fence
-                continue
-            if in_fence:
-                continue
+        for line in _unfenced_lines(text):
             for target in _LINK_RE.findall(line):
                 if target.startswith(("http://", "https://", "mailto:")):
                     continue

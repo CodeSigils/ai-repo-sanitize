@@ -1,6 +1,6 @@
 # ai-repo-sanitize
 
-> Last reviewed: 2026-10-31
+> Last reviewed: 2026-11-01
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![CI](https://github.com/CodeSigils/ai-repo-sanitize/actions/workflows/ci.yml/badge.svg)](https://github.com/CodeSigils/ai-repo-sanitize/actions/workflows/ci.yml)
@@ -181,8 +181,8 @@ git config core.hooksPath .githooks
   `ruff` (lint), `ty` (types),
   [`scripts/validate-docs.py`](scripts/validate-docs.py) (the docs contract),
   and [`scripts/check-doc-claims.py`](scripts/check-doc-claims.py) (documented
-  paths exist). It runs the same set CI runs, so a commit accepted here is
-  unlikely to be rejected later.
+  paths exist). It runs a fast subset of what CI runs, so many failures are
+  caught locally; CI remains the full gate.
 - `commit-msg` inspects the message you just wrote and rejects the commit when
   it carries an AI-attribution trailer, or when an implementation,
   configuration, or workflow subject (`feat:`, `fix:`, `ci:`, ...) lacks a
@@ -197,9 +197,10 @@ Both hooks call `uv run`, so [uv](https://docs.astral.sh/uv/) must be on your
 ## Validation command index
 
 The [canonical validation gate](CONTRIBUTING.md#canonical-validation-gate) is
-owned by the contributor guide. The command index remains here because the
-documentation contract verifies the user-facing and contributor-facing command
-surfaces against CI:
+owned by the contributor guide. This section is the required user-facing
+mirror, not a second policy: when the gate changes, treat `CONTRIBUTING.md` as
+authoritative and update this index, `ci.yml`, and the validator in the same
+change.
 
 ```bash
 uv run ty check
@@ -259,15 +260,7 @@ re-implements an invariant a second way.
 
 ## Documentation
 
-| Doc | Read it to learn |
-| --- | --- |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | How to contribute, commit, and review |
-| [MAINTENANCE.md](MAINTENANCE.md) | Daily ops: gate, hooks, dependency refresh, troubleshooting |
-| [SECURITY.md](SECURITY.md) | Vulnerability reporting and handling |
-| [RESEARCH.md](RESEARCH.md) | Sources and design decisions behind every behavior |
-| [ROADMAP.md](ROADMAP.md) | Milestones, each tied to the anti-drift checks that keep it honest |
-| [ANTIDRIFT.md](ANTIDRIFT.md) | The layered strategy that keeps this repo's docs from going stale |
-| [AGENTS.md](AGENTS.md) | First stop for agents (and humans) working in this repo |
+The [documentation index](docs/README.md) is the navigation owner: it maps each document to the user need it serves.
 
 ## Maintainer ownership
 
