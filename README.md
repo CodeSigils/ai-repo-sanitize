@@ -1,6 +1,6 @@
 # ai-repo-sanitize
 
-> Last reviewed: 2026-10-28
+> Last reviewed: 2026-10-31
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![CI](https://github.com/CodeSigils/ai-repo-sanitize/actions/workflows/ci.yml/badge.svg)](https://github.com/CodeSigils/ai-repo-sanitize/actions/workflows/ci.yml)
@@ -98,6 +98,8 @@ environment.
 
 ## Quickstart
 
+See the [Documentation index](docs/README.md) for a Diátaxis map of all docs.
+
 ```bash
 ai-repo-sanitize check --path .        # exit 1 if attribution is found
 ai-repo-sanitize preview --path .      # list matching commits, subject only
@@ -192,9 +194,12 @@ Both hooks call `uv run`, so [uv](https://docs.astral.sh/uv/) must be on your
 `core.hooksPath` is a local git setting, every new clone must repeat the
 `git config` command above.
 
-## Validation
+## Validation command index
 
-The canonical gate — run all four, in this order, before claiming completion:
+The [canonical validation gate](CONTRIBUTING.md#canonical-validation-gate) is
+owned by the contributor guide. The command index remains here because the
+documentation contract verifies the user-facing and contributor-facing command
+surfaces against CI:
 
 ```bash
 uv run ty check
@@ -203,11 +208,11 @@ uv run pytest
 uv run python scripts/validate-docs.py
 ```
 
-[`scripts/validate-docs.py`](scripts/validate-docs.py) is the drift guard: it fails when README or CONTRIBUTING
-stop listing these commands, when the required docs disappear, when ci.yml or
-the pre-commit hook drift from the canonical commands, or when an internal
-link breaks. If a command above stops being the truth, the repository tells
-you instead of the docs silently rotting.
+[`scripts/validate-docs.py`](scripts/validate-docs.py) is the drift guard: it
+fails when README or CONTRIBUTING stop mirroring the canonical gate, when CI
+does not run it verbatim, when required docs disappear, or when an internal
+link or heading fragment breaks. The pre-commit hook is deliberately a faster
+local suite: ruff, ty, docs validation, and doc-claims; CI alone runs pytest.
 
 Additional hook and CI checks have different triggers and inputs; they are not
 all part of the local gate above:
@@ -268,9 +273,10 @@ re-implements an invariant a second way.
 
 | Doc | Owns |
 | --- | --- |
-| README.md | Positioning, quickstart, the exit-code contract, docs index |
-| CONTRIBUTING.md | Contribution workflow and the canonical validation gate |
-| MAINTENANCE.md | Daily operations and the rewrite-flow summary |
+| README.md | Positioning, getting started, and the CLI exit-code contract |
+| [docs/README.md](docs/README.md) | Diátaxis navigation: when to read each document |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Contribution workflow and the [canonical validation gate](CONTRIBUTING.md#canonical-validation-gate) |
+| [MAINTENANCE.md](MAINTENANCE.md) | Daily operations and the rewrite-flow summary |
 | SECURITY.md | Vulnerability reporting and the matching trade-off |
 | RESEARCH.md | Sources and design decisions; update when behavior changes |
 | ROADMAP.md | Milestones; each references the anti-drift check keeping it honest |

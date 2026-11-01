@@ -21,27 +21,23 @@ workflow see [CONTRIBUTING.md](CONTRIBUTING.md); for security matters see
 
 ### The canonical validation gate
 
-Every change ships only when the four canonical commands pass:
-
-```bash
-uv run ty check
-uv run ruff check .
-uv run pytest
-uv run python scripts/validate-docs.py
-```
+Every change ships only when the [canonical validation gate](CONTRIBUTING.md#canonical-validation-gate)
+passes. `CONTRIBUTING.md` owns the command list; this guide owns the operational
+meaning of the gate.
 
 `scripts/validate-docs.py` is the drift guard: it fails when the required
 documentation set is incomplete, when README.md or CONTRIBUTING.md no longer
-list the canonical commands verbatim, when ci.yml stops running them in the
-same spelling, or when an internal link points nowhere. A passing run looks
-like:
+mirror the canonical gate, when ci.yml stops running it in the same spelling,
+or when an internal link or heading fragment points nowhere. It also verifies
+the hook's defined fast suite, rather than claiming that the hook runs pytest.
+A passing run confirms:
 
 ```
-PASS: all 8 required docs present
+PASS: all 10 required docs present
 PASS: README.md and CONTRIBUTING.md list every canonical command
 PASS: ci.yml runs every canonical command verbatim
-PASS: .githooks/pre-commit runs ruff check and the docs validator
-PASS: all internal relative links resolve
+PASS: .githooks/pre-commit runs its documented fast suite
+PASS: all internal relative links and Markdown heading fragments resolve
 PASS: every required doc carries a current Last reviewed header
 ```
 
@@ -187,8 +183,8 @@ workflow.
    should say that no remediation is recommended. The CLI never writes the
    Markdown report.
 
-5. Run the canonical validation gate, including the docs validator and
-   doc-claims check. After the evidence is safely recorded, remove only the
+5. Run the canonical validation gate, then run `uv run python
+   scripts/check-doc-claims.py`. After the evidence is safely recorded, remove only the
    exact `audit_dir` created in step 1; do not reuse or recursively delete a
    workspace path.
 

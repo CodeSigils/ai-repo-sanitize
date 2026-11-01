@@ -1,6 +1,6 @@
 # Contributing
 
-> Last reviewed: 2026-10-09
+> Last reviewed: 2026-10-31
 
 ai-repo-sanitize is a focused tool: it detects and removes AI-attribution
 trailers from git history, exposing every step so a maintainer can audit the
@@ -37,18 +37,9 @@ The last one is the documentation drift guard: it fails when a documented
 claim, a canonical command, or an internal link stops matching the repository.
 If it fails after your change, the change is not complete.
 
-## Exit codes
-
-The CLI and the scripts use a small, documented exit-code contract:
-
-- `0` — clean: `check` found no attribution; `rewrite` verified and published.
-- `1` — attribution found, a safety gate stopped the run, or an operation failed.
-- `2` — usage error (unknown subcommand or bad flags; argparse's default).
-
-`scripts/validate-docs.py` and `scripts/verify-urls.py` also exit 0 on success
-and 1 on findings. Keep the contract stable: adding a new code requires
-updating this section, the README table, and `tests/test_cli.py` in the same
-change.
+[README.md's exit-code reference](README.md#exit-codes) is the single source
+of truth for CLI and script exit codes. When a code changes, update that table
+and `tests/test_cli.py` in the same change.
 
 ## Code style
 
@@ -78,7 +69,8 @@ change.
 - `.github/workflows/ci.yml` must run the same command strings (plain
   `uv run ...`; do not "optimize" with `--no-sync`).
 - Required docs exist (README, CONTRIBUTING, SECURITY, MAINTENANCE, RESEARCH,
-  ROADMAP, ANTIDRIFT, AGENTS.md).
+  ROADMAP, ANTIDRIFT, AGENTS.md, `docs/README.md`, and
+  `docs/tutorial-first-scan.md`).
 - Internal relative links resolve to real files.
 
 A behavior or command change therefore touches code *and* the docs that

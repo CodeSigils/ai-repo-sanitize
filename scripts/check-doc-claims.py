@@ -22,6 +22,8 @@ REQUIRED_DOCS = (
     "ROADMAP.md",
     "ANTIDRIFT.md",
     "AGENTS.md",
+    "docs/README.md",
+    "docs/tutorial-first-scan.md",
 )
 
 ROOT = Path(__file__).resolve().parent.parent

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-> Last reviewed: 2026-10-11
+> Last reviewed: 2026-10-31
 
 This file is the first stop for any agent (or maintainer) working in this
 repository. It points at the single source of truth for what ships, how to
@@ -18,17 +18,9 @@ validate work, and which guardrails apply.
 
 ## Canonical validation gate
 
-Run the full gate below **before claiming completion** of any change that
-touches `src/`, `tests/`, `scripts/`, hooks, or docs:
-
-```sh
-uv run ty check
-uv run ruff check .
-uv run pytest
-uv run python scripts/validate-docs.py
-```
-
-Interactive version with recommendations: `CONTRIBUTING.md`.
+Before claiming completion of a change to `src/`, `tests/`, `scripts`, hooks,
+or docs, run the [canonical validation gate](CONTRIBUTING.md#canonical-validation-gate).
+`CONTRIBUTING.md` owns the commands and contributor-facing recommendations.
 
 ## Guardrails for agents
 

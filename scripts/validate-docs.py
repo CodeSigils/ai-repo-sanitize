@@ -11,8 +11,8 @@ that repo; logic rewritten here). Enforces a small, verifiable contract:
   (title/angle-bracket destinations supported; fenced code blocks are skipped).
 * Every required doc carries a current `Last reviewed: YYYY-MM-DD` header
   (missing, unparseable, future, or older than the 90-day window fails).
-* The CI workflow and the pre-commit hook actually run the canonical commands
-  they claim to run.
+* CI runs every canonical validation command. The pre-commit hook runs its
+  documented fast local checks.
 
 Exit code 0 = contract holds; 1 = findings (printed with file references).
 """
@@ -21,8 +21,10 @@ from __future__ import annotations
 
 import re
 import sys
+import unicodedata
 from datetime import date
 from pathlib import Path
+from urllib.parse import unquote
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -35,11 +37,12 @@ REQUIRED_DOCS: tuple[str, ...] = (
     "ROADMAP.md",
     "ANTIDRIFT.md",
     "AGENTS.md",
+    "docs/README.md",
+    "docs/tutorial-first-scan.md",
 )
 
-#: Canonical commands. README, CONTRIBUTING, ci.yml and .githooks/pre-commit
-#: must all reference these exact strings so the docs cannot drift from what
-#: CI and local hooks really execute.
+#: Canonical commands. README, CONTRIBUTING, and ci.yml must all reference
+#: these exact strings so the documented gate cannot drift from CI.
 VALIDATION_COMMANDS: tuple[str, ...] = (
     "uv run ty check",
     "uv run ruff check .",
@@ -47,9 +50,58 @@ VALIDATION_COMMANDS: tuple[str, ...] = (
     "uv run python scripts/validate-docs.py",
 )
 
+#: Fast local checks run by .githooks/pre-commit. The hook deliberately omits
+#: pytest; CI is the full canonical gate.
+PRE_COMMIT_COMMANDS: tuple[str, ...] = (
+    "uv run ruff check .",
+    "uv run ty check",
+    "uv run python scripts/validate-docs.py",
+    "uv run python scripts/check-doc-claims.py",
+)
+
 _LINK_RE = re.compile(r"\]\(<?([^)>\s]+)>?(?:\s+[^)]*)?\)")
 _REVIEW_RE = re.compile(r"Last reviewed:\s*(\d{4}-\d{2}-\d{2})")
 _REVIEW_WINDOW_DAYS = 90
+
+
+def _slugify_heading(heading: str) -> str:
+    """Return the GitHub-style fragment generated for an ATX heading."""
+    rendered = re.sub(r"!?\[([^\]]*)\]\([^)]*\)", r"\1", heading)
+    rendered = re.sub(r"<[^>]+>", "", rendered).lower()
+    rendered = re.sub(r"(?<!\w)_([^_]+)_(?!\w)", r"\1", rendered)
+    kept = "".join(
+        character
+        for character in rendered
+        if unicodedata.category(character)[0] in {"L", "M", "N"}
+        or character in {"_", "-"}
+        or character.isspace()
+    )
+    return re.sub(r"\s", "-", kept)
+
+
+def _heading_anchors(markdown: str) -> set[str]:
+    """Return GitHub-style anchors for ATX headings outside fenced code blocks."""
+    anchors: set[str] = set()
+    seen: dict[str, int] = {}
+    in_fence = False
+    for line in markdown.splitlines():
+        if line.strip().startswith("```"):
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
+        match = re.match(r"^ {0,3}#{1,6}[ \t]+(.*?)(?:[ \t]+#+)?[ \t]*$", line)
+        if match is None:
+            continue
+        slug = _slugify_heading(match.group(1))
+        count = seen.get(slug, 0)
+        anchor = slug if count == 0 else f"{slug}-{count}"
+        while anchor in anchors:
+            count += 1
+            anchor = f"{slug}-{count}"
+        anchors.add(anchor)
+        seen[slug] = count + 1
+    return anchors
 
 
 def findings(
@@ -91,10 +143,9 @@ def findings(
     pre_commit = root / ".githooks" / "pre-commit"
     if pre_commit.is_file():
         hook = pre_commit.read_text(encoding="utf-8")
-        if "uv run ruff check ." not in hook:
-            problems.append(".githooks/pre-commit must run: uv run ruff check .")
-        if "validate-docs.py" not in hook:
-            problems.append(".githooks/pre-commit must run scripts/validate-docs.py")
+        for command in PRE_COMMIT_COMMANDS:
+            if command not in hook:
+                problems.append(f".githooks/pre-commit must run: {command}")
 
     for doc in REQUIRED_DOCS:
         path = root / doc
@@ -109,11 +160,24 @@ def findings(
             if in_fence:
                 continue
             for target in _LINK_RE.findall(line):
-                if target.startswith(("http://", "https://", "#", "mailto:")):
+                if target.startswith(("http://", "https://", "mailto:")):
                     continue
-                resolved = (path.parent / target).resolve()
+                if target.startswith("#"):
+                    if target == "#":
+                        continue
+                    if target[1:] not in _heading_anchors(text):
+                        problems.append(f"{doc}: anchor does not exist: {target}")
+                    continue
+                relative_target, separator, fragment = target.partition("#")
+                resolved = (path.parent / relative_target).resolve()
                 if not resolved.exists():
                     problems.append(f"{doc}: internal link target does not exist: {target}")
+                elif separator and resolved.suffix == ".md":
+                    anchors = _heading_anchors(resolved.read_text(encoding="utf-8"))
+                    if unquote(fragment).lower() not in anchors:
+                        problems.append(
+                            f"{doc}: anchor does not exist in {relative_target}: #{fragment}"
+                        )
         match = _REVIEW_RE.search(text)
         if match is None:
             problems.append(f"{doc}: missing 'Last reviewed: YYYY-MM-DD' header")
@@ -138,8 +202,8 @@ def _parse_args(argv: list[str]) -> tuple[Path, date, int]:
     """--root DIR, --today YYYY-MM-DD, --review-window N; anything else fails.
 
     The default invocation stays byte-identical to the canonical command
-    (`uv run python scripts/validate-docs.py`), so the substring contract in
-    ci.yml and .githooks/pre-commit is untouched.
+    (`uv run python scripts/validate-docs.py`), so the CI and hook contracts
+    can verify it directly.
     """
     root, today, window = ROOT, date.today(), _REVIEW_WINDOW_DAYS
     pending = list(argv)
