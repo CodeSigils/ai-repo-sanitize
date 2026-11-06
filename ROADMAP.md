@@ -6,7 +6,7 @@
 > or the canonical command set must update this file, `RESEARCH.md`, and
 > `ANTIDRIFT.md` in the same commit.
 >
-> Last reviewed: 2026-10-20 (owner: @CodeSigils)
+> Last reviewed: 2026-11-06 (owner: @CodeSigils)
 
 ## How to read this roadmap
 
@@ -115,10 +115,11 @@ Completed for v0.4 (2026-10-09 – 2026-10-11):
   range in the `quality` CI job. It rejects AI-attribution trailers and
   requires a non-empty `what:` / `why:` rationale for implementation,
   configuration, and workflow prefixes. Dependabot may omit labels but is
-  never exempt from attribution detection. Fix (2026-10-20): the push path
-  gained the same Dependabot body-label exemption the pull-request path
-  already had; the first bot squash-merge cycle exposed the asymmetry when
-  all three merged commits turned master's validate run red.
+  never exempt from attribution detection. Fixes: the push path uses the head
+  commit author (2026-10-20), while the pull-request path uses the PR author
+  rather than the workflow trigger actor (2026-11-06); bot branch updates
+  therefore preserve the intended generated-message exemption without
+  weakening attribution detection.
 - **Live pre-merge readiness gate** — `scripts/check-pr-readiness.py` and the
   manual `pr readiness` workflow inspect one PR immediately before a requested
   merge. They are read-only and fail for stale merge conditions; approval is
@@ -168,15 +169,14 @@ breaks.
   and add a CI checker that fails when a required scenario loses its mapping.
   Do not adopt a blanket line-coverage target: a percentage cannot prove the
   backup, unchanged-tree, residual-scan, or explicit-push guarantees.
-- **Branch-protection policy review** — the active `protect-master` ruleset
-  blocks deletion and force-pushes but still permits ordinary direct pushes.
-  Recommended baseline: require a pull request and the uniquely named
-  `quality` plus `python-compat (3.10)` through `python-compat (3.14)` checks,
-  require the branch to be current, and give any maintainer bypass only
-  "for pull requests only." Require one approval when a second maintainer is
-  available; a sole maintainer should retain PR-only auditability without a
-  self-review deadlock. Confirm the owner, reviewer, and bypass policy before
-  changing that external configuration.
+- **Branch ruleset baseline** — completed 2026-11-06: `protect-master`
+  requires a pull request, an up-to-date branch, `quality`, all five
+  `python-compat` checks, and `Exercise one-step downstream check`; deletion,
+  force-pushes, and bypasses remain blocked. Default CodeQL scans Python and
+  GitHub Actions independently as an alerting control, so stale advanced-setup
+  check names are not required status checks. Approval remains optional for
+  the sole-maintainer policy; revisit it only if a second maintainer becomes
+  available.
 - **PR-hygiene expansion review** — after 30 days of scheduled evidence,
   decide whether stale remote branches add actionable signal. Do not add a
   write scope, comments, or auto-merge unless the recorded failures show that

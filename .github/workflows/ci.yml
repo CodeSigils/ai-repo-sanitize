@@ -59,11 +59,11 @@ jobs:
       - name: Commit-message policy on pull requests
         if: github.event_name == 'pull_request'
         env:
-          ACTOR: ${{ github.actor }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
           BASE: ${{ github.event.pull_request.base.sha }}
           HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
-          if [ "$ACTOR" = "dependabot[bot]" ]; then
+          if [ "$PR_AUTHOR" = "dependabot[bot]" ]; then
             uv run python scripts/check-commit-messages.py --base "$BASE" --head "$HEAD" --allow-bodyless
           else
             uv run python scripts/check-commit-messages.py --base "$BASE" --head "$HEAD"

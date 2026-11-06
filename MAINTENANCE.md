@@ -1,6 +1,6 @@
 # Maintenance
 
-> Last reviewed: 2026-11-01
+> Last reviewed: 2026-11-06
 
 Operational guide for maintainers of `ai-repo-sanitize`. For contribution
 workflow see [CONTRIBUTING.md](CONTRIBUTING.md); for security matters see
@@ -82,9 +82,11 @@ First merge cycle (2026-10-20): `setup-uv` 10.3.0, `ruff` 0.17.1, and
 single-`ty` PR and reopened the bump as one grouped PR, which is expected
 regrouping after a mid-cycle merge, not an error. Squash-merging a bot PR
 pushes a `dependabot[bot]`-authored commit, so the `quality` job's push-path
-commit-message check now exempts that author from body labels (see the CI
-layout section); master's validate run was red on 2026-10-20 until that
-exemption landed. With Dependabot security updates enabled the same day,
+commit-message check exempts that author from body labels. The pull-request
+path identifies a Dependabot PR from `pull_request.user.login`, not the
+workflow trigger actor, so a maintainer's supported branch update does not
+remove that exemption. Both paths still reject attribution trailers. With
+Dependabot security updates enabled the same day,
 watch whether security-update PRs actually appear — the sibling repository
 went months with the feature on and zero security PRs.
 
@@ -198,8 +200,9 @@ breaks anything.
 - **quality** — `uv sync --locked`, shellcheck the hooks, then the
   canonical gate: `ruff check .`, `ty check`, `pytest`, `validate-docs.py`;
   it checks each newly introduced commit for attribution trailers and required
-  rationale labels (Dependabot is exempt from body labels on the push and
-  pull-request paths alike, never from attribution checks);
+  rationale labels (Dependabot is exempt from body labels on the push path by
+  commit author and on the pull-request path by PR author, never from
+  attribution checks);
   a datadef-style doc-coverage step warns (never fails) when a code change
   ships without a matching docs change; a codocia-class claims check fails
   when a doc references a backticked repo path that does not exist;
