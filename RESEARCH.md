@@ -1,6 +1,6 @@
 # Research and Decisions (RESEARCH.md)
 
-Last reviewed: 2026-11-01. Reference document: cites the external sources and records the
+Last reviewed: 2026-11-06. Reference document: cites the external sources and records the
 design decisions built on them. Per the [ANTIDRIFT code-changes rule](ANTIDRIFT.md), re-verify
 this file when `patterns.py`, `cli.py`, or the canonical validation commands change.
 
@@ -90,14 +90,21 @@ this file when `patterns.py`, `cli.py`, or the canonical validation commands cha
     publisher to `contents: write`. Finally, `git merge-base --is-ancestor`
     has the exact zero/non-zero ancestry contract needed to reject a tag that
     is not reachable from `master`.
-  - **Branch-policy recommendation (future evaluation)** — retain the current
-    deletion and force-push protections, then require pull requests, the
-    uniquely named quality and compatibility checks, and an up-to-date branch.
-    GitHub rulesets support those controls and a "for pull requests only"
-    bypass, which preserves an auditable PR path without granting a direct
-    push exception. Require one approval only when a second maintainer can
-    supply it; a sole maintainer would otherwise deadlock. This is a
-    maintainer-governance decision, not a workflow change.
+  - **Ruleset/default-CodeQL reconciliation (2026-11-06)** — GitHub's default
+    CodeQL setup is active for Python and GitHub Actions and produces
+    code-scanning analyses on pull requests, but its aggregate check is named
+    `CodeQL`; it does not provide the stale advanced-workflow contexts
+    `Analyze (python)` and `Analyze (actions)` as required status checks.
+    `protect-master` therefore requires the real canonical CI checks only and
+    leaves CodeQL as an independently configured alerting control. The ruleset
+    also now requires pull requests and an up-to-date branch, blocks deletion
+    and force-pushes, and has no bypass actors; approval remains optional for
+    the sole-maintainer policy. A maintainer-triggered GitHub branch update
+    exposed a related CI bug: `github.actor` is the updater, not the PR owner.
+    The Dependabot generated-message exemption must use
+    `github.event.pull_request.user.login`, while attribution detection stays
+    mandatory. Sources checked 2026-11-06: GitHub's default/advanced setup,
+    setup-type, and default-setup evaluation documentation.
 
 ## 3. Anti-drift literature (2026)
 
@@ -481,6 +488,9 @@ absent); awesome-agent-trust has no hooks at all.
 - Git ancestry checks (`merge-base --is-ancestor`): <https://git-scm.com/docs/git-merge-base>
 - GitHub ruleset controls and required checks: <https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/available-rules-for-rulesets>
 - GitHub ruleset bypass modes: <https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/creating-rulesets-for-a-repository>
+- GitHub CodeQL default setup: <https://docs.github.com/en/code-security/how-tos/find-and-fix-code-vulnerabilities/configure-code-scanning/configure-code-scanning>
+- GitHub CodeQL setup types: <https://docs.github.com/en/code-security/concepts/code-scanning/setup-types>
+- GitHub CodeQL default-setup evaluation: <https://docs.github.com/en/code-security/tutorials/customize-code-scanning/evaluate-default-setup>
 - GitHub Actions choosing when your workflow runs: <https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run>
 - GitHub Dependabot grouped version updates (PR optimization): <https://docs.github.com/en/code-security/tutorials/secure-your-dependencies/optimizing-pr-creation-version-updates>
 - Dependabot configuration options reference: <https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference>
