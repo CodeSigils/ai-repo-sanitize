@@ -6,7 +6,7 @@
 > or the canonical command set must update this file, `RESEARCH.md`, and
 > `ANTIDRIFT.md` in the same commit.
 >
-> Last reviewed: 2026-11-06 (owner: @CodeSigils)
+> Last reviewed: 2026-11-07 (owner: @CodeSigils)
 
 ## How to read this roadmap
 
@@ -161,6 +161,12 @@ documented one-step command on every push and fails if the exit-code contract
 breaks.
 
 ## Next (queued 2026-10-09)
+
+- **Workflow-script navigation contract** — completed 2026-11-07:
+  `docs/reference/ci-workflow-map.md` records each checked-in Python script
+  invoked by CI, while `scripts/validate-docs.py` verifies map/workflow/script
+  parity. Workflow YAML remains authoritative for orchestration; the map is a
+  discoverability layer for maintainers and graph-navigation tools.
 
 - **Behavior-completeness contract** — replace the aspirational claim that every
   code path has a test with a reviewed, machine-checked inventory of public

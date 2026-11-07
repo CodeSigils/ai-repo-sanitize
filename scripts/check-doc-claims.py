@@ -23,6 +23,7 @@ REQUIRED_DOCS = (
     "ANTIDRIFT.md",
     "AGENTS.md",
     "docs/README.md",
+    "docs/reference/ci-workflow-map.md",
     "docs/tutorial-first-scan.md",
 )
 

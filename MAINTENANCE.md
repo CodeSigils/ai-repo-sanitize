@@ -1,6 +1,6 @@
 # Maintenance
 
-> Last reviewed: 2026-11-06
+> Last reviewed: 2026-11-07
 
 Operational guide for maintainers of `ai-repo-sanitize`. For contribution
 workflow see [CONTRIBUTING.md](CONTRIBUTING.md); for security matters see
@@ -224,8 +224,10 @@ breaks anything.
 
 The docs mirror the workflow, and `scripts/validate-docs.py` enforces the
 agreement: if ci.yml stops running a canonical command verbatim, the gate
-fails. Agents and maintainers should treat the workflow file as the source of
-truth for what is validated and when.
+fails. [The CI workflow-to-script map](docs/reference/ci-workflow-map.md)
+adds discoverable script-level wiring and is checked for parity with every
+workflow `run:` script path. Agents and maintainers should treat the workflow
+file as the source of truth for what is validated and when.
 
 ## Releasing
 
