@@ -56,6 +56,9 @@ For every workflow-to-script pair and its mechanical parity check, see the
 remains authoritative for triggers, permissions, matrices, conditions, caches,
 artifacts, and shell control flow.
 
+CodeQL is GitHub-managed security scanning. It runs alongside this repository's
+workflows but intentionally remains outside the local workflow-to-script map.
+
 ## Modes
 
 | Command | What it does | Safe by default |
