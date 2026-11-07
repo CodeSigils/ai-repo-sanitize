@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 620" role="img" aria-labelledby="title desc">
+  <title id="title">AI Repo Sanitize CI topology</title>
+  <desc id="desc">GitHub Actions workflows invoke local guard scripts, which protect repository contracts.</desc>
+  <style>
+    .bg { fill: #f8fafc; }
+    .heading { fill: #334155; font: 600 16px system-ui, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+    .label { fill: #172033; font: 600 15px system-ui, sans-serif; }
+    .detail { fill: #475569; font: 13px system-ui, sans-serif; }
+    .workflow { fill: #e0f2fe; stroke: #38bdf8; }
+    .script { fill: #ecfdf5; stroke: #34d399; }
+    .guard { fill: #fef3c7; stroke: #fbbf24; }
+    .node { stroke-width: 1.5; }
+    .line { fill: none; stroke: #94a3b8; stroke-width: 1.5; marker-end: url(#arrow); }
+    .group { fill: none; stroke: #cbd5e1; stroke-width: 1; stroke-dasharray: 5 5; }
+  </style>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+  <rect class="bg" width="1080" height="620" rx="18"/>
+  <text class="heading" x="74" y="66">GitHub Actions</text>
+  <text class="heading" x="433" y="66">Checked-in scripts</text>
+  <text class="heading" x="793" y="66">Repository guardrails</text>
+  <rect class="group" x="44" y="88" width="272" height="460" rx="14"/>
+  <rect class="group" x="402" y="88" width="272" height="460" rx="14"/>
+  <rect class="group" x="762" y="88" width="272" height="460" rx="14"/>
+
+  <path class="line" d="M286 166 H402"/>
+  <path class="line" d="M286 270 H402"/>
+  <path class="line" d="M286 374 H402"/>
+  <path class="line" d="M286 478 H402"/>
+  <path class="line" d="M674 166 H762"/>
+  <path class="line" d="M674 270 H762"/>
+  <path class="line" d="M674 374 H762"/>
+  <path class="line" d="M674 478 H762"/>
+
+  <g transform="translate(74 126)">
+    <rect class="workflow node" width="212" height="80" rx="12"/>
+    <text class="label" x="18" y="34">validate</text>
+    <text class="detail" x="18" y="57">push and pull request</text>
+  </g>
+  <g transform="translate(74 230)">
+    <rect class="workflow node" width="212" height="80" rx="12"/>
+    <text class="label" x="18" y="34">release</text>
+    <text class="detail" x="18" y="57">tag preflight</text>
+  </g>
+  <g transform="translate(74 334)">
+    <rect class="workflow node" width="212" height="80" rx="12"/>
+    <text class="label" x="18" y="34">PR hygiene / readiness</text>
+    <text class="detail" x="18" y="57">scheduled or manual</text>
+  </g>
+  <g transform="translate(74 438)">
+    <rect class="workflow node" width="212" height="80" rx="12"/>
+    <text class="label" x="18" y="34">URL audit</text>
+    <text class="detail" x="18" y="57">weekly or manual</text>
+  </g>
+
+  <g transform="translate(432 126)">
+    <rect class="script node" width="212" height="80" rx="12"/>
+    <text class="label" x="18" y="34">validate-docs.py</text>
+    <text class="detail" x="18" y="57">docs and CI map parity</text>
+  </g>
+  <g transform="translate(432 230)">
+    <rect class="script node" width="212" height="80" rx="12"/>
+    <text class="label" x="18" y="34">check-doc-claims.py</text>
+    <text class="detail" x="18" y="57">documented paths exist</text>
+  </g>
+  <g transform="translate(432 334)">
+    <rect class="script node" width="212" height="80" rx="12"/>
+    <text class="label" x="18" y="34">PR policy scripts</text>
+    <text class="detail" x="18" y="57">message, hygiene, readiness</text>
+  </g>
+  <g transform="translate(432 438)">
+    <rect class="script node" width="212" height="80" rx="12"/>
+    <text class="label" x="18" y="34">verify-urls.py</text>
+    <text class="detail" x="18" y="57">external link audit</text>
+  </g>
+
+  <g transform="translate(792 126)">
+    <rect class="guard node" width="212" height="80" rx="12"/>
+    <text class="label" x="18" y="34">Documented contract</text>
+    <text class="detail" x="18" y="57">links, freshness, CI wiring</text>
+  </g>
+  <g transform="translate(792 230)">
+    <rect class="guard node" width="212" height="80" rx="12"/>
+    <text class="label" x="18" y="34">Truthful documentation</text>
+    <text class="detail" x="18" y="57">paths remain inspectable</text>
+  </g>
+  <g transform="translate(792 334)">
+    <rect class="guard node" width="212" height="80" rx="12"/>
+    <text class="label" x="18" y="34">Safe collaboration</text>
+    <text class="detail" x="18" y="57">review, merge, commit hygiene</text>
+  </g>
+  <g transform="translate(792 438)">
+    <rect class="guard node" width="212" height="80" rx="12"/>
+    <text class="label" x="18" y="34">Current references</text>
+    <text class="detail" x="18" y="57">externally reachable sources</text>
+  </g>
+  <text class="detail" x="74" y="586">Detailed workflow-to-script pairs: docs/reference/ci-workflow-map.md</text>
+</svg>
