@@ -1,6 +1,6 @@
 # ai-repo-sanitize
 
-> Last reviewed: 2026-11-01
+> Last reviewed: 2026-11-07
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![CI](https://github.com/CodeSigils/ai-repo-sanitize/actions/workflows/ci.yml/badge.svg)](https://github.com/CodeSigils/ai-repo-sanitize/actions/workflows/ci.yml)
@@ -45,6 +45,16 @@ explicit force-with-lease push decision part of one checked process.
   unit-tested, so the guards cannot rot.
 - **Portable** — stdlib-only runtime, POSIX-only hooks and greps (never `-P`
   or `\b`), macOS/BSD-safe, Python 3.10+.
+
+## CI topology
+
+![CI workflows invoke checked-in guard scripts, which protect repository contracts.](docs/assets/ci-topology.svg)
+
+The diagram is a readable orientation layer, not an executable specification.
+For every workflow-to-script pair and its mechanical parity check, see the
+[CI workflow-to-script map](docs/reference/ci-workflow-map.md). Workflow YAML
+remains authoritative for triggers, permissions, matrices, conditions, caches,
+artifacts, and shell control flow.
 
 ## Modes
 
