@@ -1,6 +1,6 @@
 # Documentation
 
-> Last reviewed: 2026-11-01
+> Last reviewed: 2026-11-07
 
 This index maps the documentation to the [Diátaxis](https://diataxis.fr/) framework to help both humans and agents find what they need quickly.
 
@@ -28,6 +28,7 @@ This index maps the documentation to the [Diátaxis](https://diataxis.fr/) frame
 
 - [Exit codes & flags](../README.md#exit-codes) — CLI contract.
 - [CI layout](../MAINTENANCE.md#ci-layout) — Jobs, triggers, and enforcement.
+- [CI workflow-to-script map](reference/ci-workflow-map.md) — Discoverable local script wiring with a parity check.
 - [Automation](../MAINTENANCE.md#automation) — Index of workflows, hooks, Dependabot, and branch protection.
 - [Security policy](../SECURITY.md) — Reporting process and matching policy.
 

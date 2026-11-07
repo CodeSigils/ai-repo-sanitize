@@ -14,6 +14,8 @@ that repo; logic rewritten here). Enforces a small, verifiable contract:
   (missing, unparseable, future, or older than the 90-day window fails).
 * CI runs every canonical validation command. The pre-commit hook runs its
   documented fast local checks.
+* The maintained CI workflow map names every checked-in script invoked by a
+  workflow; a parity check catches either side drifting.
 
 Supported Markdown subset: ATX headings; inline, reference, collapsed, and
 shortcut links/images; HTML entities; emphasis/strong; backtick and tilde
@@ -47,6 +49,7 @@ REQUIRED_DOCS: tuple[str, ...] = (
     "ANTIDRIFT.md",
     "AGENTS.md",
     "docs/README.md",
+    "docs/reference/ci-workflow-map.md",
     "docs/tutorial-first-scan.md",
 )
 
@@ -66,6 +69,23 @@ PRE_COMMIT_COMMANDS: tuple[str, ...] = (
     "uv run ty check",
     "uv run python scripts/validate-docs.py",
     "uv run python scripts/check-doc-claims.py",
+)
+
+# This is intentionally a small text-level contract, not a YAML parser. GitHub
+# Actions' ``run:`` bodies are shell, so the repository maps only the local
+# Python scripts they invoke. Workflow YAML remains the source of truth for
+# triggers, permissions, matrices, conditions, caches, and artifacts.
+CI_WORKFLOW_MAP_DOC = "docs/reference/ci-workflow-map.md"
+WORKFLOW_SCRIPT_MAP: tuple[tuple[str, str], ...] = (
+    (".github/workflows/ci.yml", "scripts/check-commit-messages.py"),
+    (".github/workflows/ci.yml", "scripts/check-doc-claims.py"),
+    (".github/workflows/ci.yml", "scripts/check-doc-coverage.py"),
+    (".github/workflows/ci.yml", "scripts/validate-docs.py"),
+    (".github/workflows/pr-hygiene.yml", "scripts/check-pr-hygiene.py"),
+    (".github/workflows/pr-readiness.yml", "scripts/check-pr-readiness.py"),
+    (".github/workflows/release.yml", "scripts/check-doc-claims.py"),
+    (".github/workflows/release.yml", "scripts/validate-docs.py"),
+    (".github/workflows/url-audit.yml", "scripts/verify-urls.py"),
 )
 
 _LINK_RE = re.compile(r"\]\(<?([^)>\s]+)>?(?:\s+[^)]*)?\)")
@@ -148,6 +168,37 @@ def _heading_anchors(markdown: str) -> set[str]:
     return anchors
 
 
+def _workflow_script_pairs(root: Path) -> set[tuple[str, str]]:
+    """Return local Python script paths invoked by checked-in workflows."""
+    pairs: set[tuple[str, str]] = set()
+    workflow_dir = root / ".github" / "workflows"
+    for workflow in (*workflow_dir.glob("*.yml"), *workflow_dir.glob("*.yaml")):
+        relative_workflow = workflow.relative_to(root).as_posix()
+        content = workflow.read_text(encoding="utf-8")
+        for script in re.findall(r"scripts/[A-Za-z0-9_.-]+\.py", content):
+            pairs.add((relative_workflow, script))
+    return pairs
+
+
+def _check_workflow_script_map(root: Path, problems: list[str]) -> None:
+    """Verify the CI map documents exactly the workflow-to-script surface."""
+    mapped = set(WORKFLOW_SCRIPT_MAP)
+    observed = _workflow_script_pairs(root)
+    map_path = root / CI_WORKFLOW_MAP_DOC
+    map_text = map_path.read_text(encoding="utf-8") if map_path.is_file() else ""
+
+    for workflow, script in sorted(observed - mapped):
+        problems.append(f"workflow script is not mapped: {workflow} -> {script}")
+    for workflow, script in sorted(mapped - observed):
+        problems.append(f"mapped script is not invoked by workflow: {workflow} -> {script}")
+    for workflow, script in WORKFLOW_SCRIPT_MAP:
+        if not (root / script).is_file():
+            problems.append(f"mapped script does not exist: {script}")
+        marker = f"<!-- ci-script-map: workflow={workflow} script={script} -->"
+        if marker not in map_text:
+            problems.append(f"CI workflow map is missing entry: {workflow} -> {script}")
+
+
 def findings(
     root: Path = ROOT,
     review_window_days: int = _REVIEW_WINDOW_DAYS,
@@ -190,6 +241,8 @@ def findings(
         for command in PRE_COMMIT_COMMANDS:
             if command not in hook:
                 problems.append(f".githooks/pre-commit must run: {command}")
+
+    _check_workflow_script_map(root, problems)
 
     for doc in REQUIRED_DOCS:
         path = root / doc

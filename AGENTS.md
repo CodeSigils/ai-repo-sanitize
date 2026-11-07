@@ -1,6 +1,6 @@
 # AGENTS.md
 
-> Last reviewed: 2026-11-01
+> Last reviewed: 2026-11-07
 
 This file is the first stop for any agent (or maintainer) working in this
 repository. It points at the single source of truth for what ships, how to
@@ -39,6 +39,9 @@ or docs, run the [canonical validation gate](CONTRIBUTING.md#canonical-validatio
 - Read `.github/workflows/ci.yml` before changing behavior: it is the
   executable picture of what this repo validates. The docs mirror it, and
   `scripts/validate-docs.py` enforces the agreement between them.
+- For a workflow change, also read the [CI workflow-to-script map](docs/reference/ci-workflow-map.md).
+  It is a discoverability aid with a parity check; workflow YAML remains the
+  source of truth for triggers, permissions, conditions, and runner behavior.
 - Inspect the remote CI state before and after pushing (`gh run list` or the
   Actions page). A run can fail with "workflow file issue" and *zero jobs*,
   leaving no logs — the local gate alone does not prove CI is green. See

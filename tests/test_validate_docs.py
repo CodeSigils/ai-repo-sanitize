@@ -50,6 +50,14 @@ class ValidatorFixture(unittest.TestCase):
             f"name: validate\n\njobs:\n  quality:\n    steps:\n{ci_body}\n",
             encoding="utf-8",
         )
+        for workflow, script in self.validate_docs.WORKFLOW_SCRIPT_MAP:
+            path = self.root / workflow
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with path.open("a", encoding="utf-8") as handle:
+                handle.write(f"run: python3 {script}\n")
+            script_path = self.root / script
+            script_path.parent.mkdir(parents=True, exist_ok=True)
+            script_path.touch()
         hooks = self.root / ".githooks"
         hooks.mkdir()
         (hooks / "pre-commit").write_text(
@@ -84,6 +92,11 @@ class ValidatorFixture(unittest.TestCase):
             if name in ("README.md", "CONTRIBUTING.md"):
                 for command in _COMMANDS:
                     body.append(f"```sh\n{command}\n```")
+            if name == self.validate_docs.CI_WORKFLOW_MAP_DOC:
+                for workflow, script in self.validate_docs.WORKFLOW_SCRIPT_MAP:
+                    body.append(
+                        f"<!-- ci-script-map: workflow={workflow} script={script} -->"
+                    )
             if broken_link and name == "README.md":
                 body.append("See [missing-file](nonexistent-target.md).")
             body.append("")
@@ -160,6 +173,36 @@ class FindingsTest(ValidatorFixture):
                 "internal link target does not exist: nonexistent-target.md" in p
                 for p in problems
             ),
+            problems,
+        )
+
+    def test_unmapped_workflow_script_fails(self) -> None:
+        self._write_docs()
+        script = self.root / "scripts" / "new-check.py"
+        script.write_text("", encoding="utf-8")
+        with (self.root / ".github" / "workflows" / "ci.yml").open(
+            "a", encoding="utf-8"
+        ) as handle:
+            handle.write("run: python3 scripts/new-check.py\n")
+        problems = self.run_findings(today=date.today())
+        self.assertIn(
+            "workflow script is not mapped: .github/workflows/ci.yml -> scripts/new-check.py",
+            problems,
+        )
+
+    def test_missing_ci_map_entry_fails(self) -> None:
+        self._write_docs()
+        map_path = self.root / self.validate_docs.CI_WORKFLOW_MAP_DOC
+        marker = (
+            "<!-- ci-script-map: workflow=.github/workflows/ci.yml "
+            "script=scripts/validate-docs.py -->"
+        )
+        map_text = map_path.read_text(encoding="utf-8").replace(marker, "")
+        map_path.write_text(map_text, encoding="utf-8")
+        problems = self.run_findings(today=date.today())
+        self.assertIn(
+            "CI workflow map is missing entry: .github/workflows/ci.yml -> "
+            "scripts/validate-docs.py",
             problems,
         )
 

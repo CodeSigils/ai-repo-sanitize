@@ -1,6 +1,6 @@
 # Research and Decisions (RESEARCH.md)
 
-Last reviewed: 2026-11-06. Reference document: cites the external sources and records the
+Last reviewed: 2026-11-07. Reference document: cites the external sources and records the
 design decisions built on them. Per the [ANTIDRIFT code-changes rule](ANTIDRIFT.md), re-verify
 this file when `patterns.py`, `cli.py`, or the canonical validation commands change.
 
@@ -211,7 +211,23 @@ absent); awesome-agent-trust has no hooks at all.
     mergeability, and required-check status. This catches stale bases and
     accidental mixed commits before they become a remote recovery problem.
 
-11. **Local comparator evidence (2026-10-09)** — three recent repositories
+11. **CI wiring remains YAML-first, with a checked navigation layer** — a
+    local Graphify probe on 2026-11-07 confirmed that its YAML extraction sees
+    workflow structure but does not create edges from scalar `run:` shell text
+    to repository scripts. The repository therefore keeps workflow behavior in
+    YAML and adds `docs/reference/ci-workflow-map.md`: a concise map of each
+    workflow-to-script pair. `scripts/validate-docs.py` mechanically compares
+    the map with every checked-in workflow's `scripts/*.py` references, so the
+    navigational aid cannot silently become stale. This is deliberately not a
+    reason to move workflow orchestration into scripts: triggers, permissions,
+    matrices, conditions, cache, artifacts, and shell control flow remain
+    clearer and reviewable in workflow YAML. Sources checked 2026-11-07:
+    Graphify's YAML extractor at
+    <https://github.com/Graphify-Labs/graphify/blob/16218bfc80d4ca2799734d045039f7ed1a5fa9fb/graphify/extractors/yaml_config.py>
+    and its documented configuration surface at
+    <https://github.com/Graphify-Labs/graphify/blob/16218bfc80d4ca2799734d045039f7ed1a5fa9fb/graphify/rcfile.py>.
+
+12. **Local comparator evidence (2026-10-09)** — three recent repositories
     document the same recurring class of failure. `repo-health-scan` found two
     mergeable Dependabot PRs left for 12 days and now runs a seven-day
     dependency-backlog detector that comments once and fails its scheduled
