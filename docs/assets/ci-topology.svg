@@ -98,4 +98,5 @@
     <text class="detail" x="18" y="57">externally reachable sources</text>
   </g>
   <text class="detail" x="74" y="586">Detailed workflow-to-script pairs: docs/reference/ci-workflow-map.md</text>
+  <text class="detail" x="74" y="608">CodeQL is GitHub-managed security scanning and intentionally sits outside this local-script map.</text>
 </svg>
