@@ -1,9 +1,10 @@
 # ai-repo-sanitize
 
-> Last reviewed: 2026-11-07
+> Last reviewed: 2026-11-09
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![CI](https://github.com/CodeSigils/ai-repo-sanitize/actions/workflows/ci.yml/badge.svg)](https://github.com/CodeSigils/ai-repo-sanitize/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/CodeSigils/ai-repo-sanitize/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/CodeSigils/ai-repo-sanitize/actions/workflows/github-code-scanning/codeql)
 
 Safely strip AI attribution trailers from git history — preview, rewrite,
 verify, publish. A `check` mode supports CI, and a `rewrite` mode never pushes
