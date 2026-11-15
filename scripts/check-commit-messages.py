@@ -36,7 +36,8 @@ def _has_labeled_body(message: str, label: str) -> bool:
     """Return whether a non-empty labeled paragraph appears in a message."""
     prefix = f"{label}:"
     return any(
-        line.strip().startswith(prefix) and line.strip() != prefix for line in message.splitlines()
+        line.strip().lower().startswith(prefix) and line.strip()[len(prefix):].strip()
+        for line in message.splitlines()
     )
 
 
@@ -61,11 +62,15 @@ def _run(arguments: list[str]) -> str:
     return completed.stdout
 
 
-def _range_messages(base: str, head: str) -> list[tuple[str, str]]:
+def _range_messages(base: str, head: str) -> list[tuple[str, str, str]]:
     """Read each commit introduced by base..head in chronological order."""
     revisions = _run(["git", "rev-list", "--reverse", f"{base}..{head}"]).splitlines()
     return [
-        (revision, _run(["git", "show", "-s", "--format=%B", revision]))
+        (
+            revision,
+            _run(["git", "show", "-s", "--format=%an", revision]).strip(),
+            _run(["git", "show", "-s", "--format=%B", revision]),
+        )
         for revision in revisions
     ]
 
@@ -92,24 +97,32 @@ def main() -> int:
     """Print every violation and return a CI-friendly status code."""
     arguments = _arguments()
     try:
-        messages = (
-            [(str(arguments.message_file), arguments.message_file.read_text(encoding="utf-8"))]
-            if arguments.message_file is not None
-            else _range_messages(arguments.base, arguments.head)
-        )
+        if arguments.message_file is not None:
+            entries = [
+                (
+                    str(arguments.message_file),
+                    "",
+                    arguments.message_file.read_text(encoding="utf-8"),
+                )
+            ]
+        else:
+            entries = _range_messages(arguments.base, arguments.head)
     except (OSError, RuntimeError) as error:
         print(f"check-commit-messages: could not read messages: {error}", file=sys.stderr)
         return 2
 
     problems = [
         f"{revision}: {problem}"
-        for revision, message in messages
-        for problem in findings(message, allow_bodyless=arguments.allow_bodyless)
+        for revision, author, message in entries
+        for problem in findings(
+            message,
+            allow_bodyless=arguments.allow_bodyless or author == "dependabot[bot]",
+        )
     ]
     if problems:
         print("\n".join(f"FAIL: {problem}" for problem in problems), file=sys.stderr)
         return 1
-    print(f"check-commit-messages: PASS: checked {len(messages)} commit(s)")
+    print(f"check-commit-messages: PASS: checked {len(entries)} commit(s)")
     return 0
 
 
