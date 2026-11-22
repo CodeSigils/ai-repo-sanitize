@@ -3,7 +3,10 @@
 > Last reviewed: 2026-11-22
 
 This file is the first stop for any agent (or maintainer) working in this
-repository. It points at the single source of truth for what ships, how to
+repository. For git/VCS operations, read this file first, then follow
+[MAINTENANCE.md](MAINTENANCE.md) for operational procedures and
+[CONTRIBUTING.md](CONTRIBUTING.md) for the canonical validation gate and commit
+workflow. It points at the single source of truth for what ships, how to
 validate work, and which guardrails apply.
 
 ## What ships
@@ -86,6 +89,10 @@ or docs, run the [canonical validation gate](CONTRIBUTING.md#canonical-validatio
   <number>` immediately before merging; add `--require-approval` when the
   current maintainer policy requires one. Never merge a PR merely because it
   once passed CI.
+- After a requested PR is merged, synchronize local `master` with its upstream,
+  delete the merged local feature branch only when it is fully merged, delete
+  the remote feature branch when repository policy allows, run `git fetch
+  --prune`, and report the final `git branch -vv --all` state.
 - During dependency work, list open Dependabot PRs and flag any that are
   nearing 30 days without a merge, rebase, or close decision. Native
   auto-merge is deferred pending the roadmap's PR-hygiene and branch-ruleset

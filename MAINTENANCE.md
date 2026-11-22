@@ -129,6 +129,16 @@ review. The same check is available through the manual `pr readiness` Actions
 workflow. Neither path merges or modifies the PR; a maintainer still makes the
 final merge decision.
 
+### Post-merge cleanup
+
+After a requested PR is merged:
+
+1. Synchronize local `master` with `origin/master` and confirm the merged commit is present.
+2. Delete the merged local feature branch only when it is fully merged (`git branch -d <branch>`); do not force-delete unmerged work.
+3. Delete the remote feature branch when repository policy allows and the branch is no longer needed.
+4. Run `git fetch --prune` / `git remote prune origin` to remove stale remote-tracking refs.
+5. Report the final `git branch -vv --all` and `git status --short --branch` state.
+
 ### Weekly URL re-check
 
 url-audit.yml runs `scripts/verify-urls.py` on the weekly schedule and on
