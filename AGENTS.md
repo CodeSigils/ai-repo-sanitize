@@ -113,7 +113,8 @@ review gates.
 - After a requested PR is merged, synchronize local `master` with its upstream,
   delete the merged local feature branch only when it is fully merged, delete
   the remote feature branch when repository policy allows, run `git fetch
-  --prune`, and report the final `git branch -vv --all` state.
+  --prune`, and report the final `git branch -vv --all` and
+  `git status --short --branch` state.
 - During dependency work, list open Dependabot PRs and flag any that are
   nearing 30 days without a merge, rebase, or close decision. Native
   auto-merge is deferred pending the roadmap's PR-hygiene and branch-ruleset
