@@ -198,7 +198,9 @@ breaks anything.
 
 - **actionlint** — downloads the SHA-256-verified upstream binary and checks
   GitHub Actions workflow syntax, expressions, action inputs, shell snippets,
-  and security-sensitive workflow patterns before GitHub executes them.
+  and security-sensitive workflow patterns during CI. GitHub must first parse
+  and start this workflow; actionlint then validates the checked-in workflow
+  files before their later use.
 - **quality** — `uv sync --locked`, shellcheck the hooks, then the
   canonical gate: `ruff check .`, `ty check`, `pytest`, `validate-docs.py`;
   it checks each newly introduced commit for attribution trailers and required
