@@ -4,8 +4,9 @@ datadef warn-not-fail rule: CI detects proxies for outdatedness, not
 outdatedness itself, and a hard fail invites token edits. This check only
 warns (::warning output); it exits 0 whenever it ran successfully.
 
-The warning points at ANTIDRIFT.md's code-changes rule so the fix is
-mechanical: bump the influenced docs in the same commit.
+The warning asks maintainers to review the documentation affected by the
+change. It is deliberately advisory: only maintainers can determine which
+documentation needs revision.
 """
 from __future__ import annotations
 
@@ -53,7 +54,7 @@ def doc_coverage_warnings(changed: list[str]) -> list[str]:
     listed = ", ".join(code_changed)
     return [
         f"code changed without a matching docs change: {listed}"
-        " — bump the influenced docs in the same commit (ANTIDRIFT.md code-changes rule)"
+        " — review the documentation affected by this change"
     ]
 
 

@@ -1,6 +1,6 @@
 # Contributing
 
-> Last reviewed: 2026-11-07
+> Last reviewed: 2026-11-22
 
 ai-repo-sanitize is a focused tool: it detects and removes AI-attribution
 trailers from git history, exposing every step so a maintainer can audit the
@@ -69,10 +69,7 @@ and `tests/test_cli.py` in the same change.
 - `.github/workflows/ci.yml` must run the same command strings (plain
   `uv run ...`; do not "optimize" with `--no-sync`).
 - Required docs exist. The authoritative list is `REQUIRED_DOCS` in
-  `scripts/validate-docs.py`; it currently covers README, CONTRIBUTING,
-  SECURITY, MAINTENANCE, RESEARCH, ROADMAP, ANTIDRIFT, AGENTS.md,
-  `docs/README.md`, `docs/reference/ci-workflow-map.md`, and
-  `docs/tutorial-first-scan.md`.
+  `scripts/validate-docs.py`.
 - The CI workflow map records every checked-in Python script invoked by a
   workflow. The validator checks it against workflow text, script existence,
   and its stable entries; YAML remains authoritative for workflow behavior.

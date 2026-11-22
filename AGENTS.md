@@ -1,6 +1,6 @@
 # AGENTS.md
 
-> Last reviewed: 2026-11-07
+> Last reviewed: 2026-11-22
 
 This file is the first stop for any agent (or maintainer) working in this
 repository. It points at the single source of truth for what ships, how to
@@ -13,8 +13,7 @@ validate work, and which guardrails apply.
   history and pushing are *never* done implicitly - `rewrite` requires
   explicit `--push`. Narrative docs: `README.md`.
 - **Repo-only infrastructure** (not shipped): `.github/`, `.githooks/`,
-  `scripts/`, the documentation set (`RESEARCH.md`, `ROADMAP.md`,
-  `ANTIDRIFT.md`, `MAINTENANCE.md`, `SECURITY.md`, `CONTRIBUTING.md`).
+  `scripts/`, and the maintainer documentation set.
 
 ## Canonical validation gate
 

@@ -1,8 +1,8 @@
 # Research and Decisions (RESEARCH.md)
 
-Last reviewed: 2026-11-07. Reference document: cites the external sources and records the
-design decisions built on them. Per the [ANTIDRIFT code-changes rule](ANTIDRIFT.md), re-verify
-this file when `patterns.py`, `cli.py`, or the canonical validation commands change.
+Last reviewed: 2026-11-22. Reference document: cites the external sources and records the
+design decisions built on them. Re-verify relevant findings when a behavior or validation
+contract changes.
 
 ## 1. Primary domain source
 
@@ -106,7 +106,7 @@ this file when `patterns.py`, `cli.py`, or the canonical validation commands cha
     mandatory. Sources checked 2026-11-06: GitHub's default/advanced setup,
     setup-type, and default-setup evaluation documentation.
 
-## 3. Anti-drift literature (2026)
+## 3. Documentation-maintenance literature (2026)
 
 | Source | Finding adopted | Decision |
 | --- | --- | --- |
@@ -115,7 +115,7 @@ this file when `patterns.py`, `cli.py`, or the canonical validation commands cha
 | cosmocoder/doc-freshness-checker | validate doc references (paths, URLs, versions, symbols) in CI | Layer-1 contract; semantic layers rejected as overkill |
 | datadef.io docs-checks-in-ci | 4 checks: links (on a **schedule**), prose (Vale), freshness (`last_reviewed` window), diff-coverage warn-not-fail | schedule-based verify-urls; `last_reviewed` gate shipped 2026-10-09 (v0.2; 90-day window in validate-docs); warn-not-fail diff rule shipped 2026-10-09 (scripts/check-doc-coverage.py, warn-only) |
 | Arthur920/Staleguard | deterministic Layer-1 drift checks; agent guardrail: run check after edits | our validate-docs.py + AGENTS.md gate mirror this |
-| andimrob/docrot | `last_reviewed` frontmatter + interval / until_date / **code_changes** strategies | code-changes rule adopted now; interval gate queued for v0.2 |
+| andimrob/docrot | `last_reviewed` frontmatter + interval / until_date / **code_changes** strategies | the 90-day freshness gate is implemented; documentation coverage remains advisory |
 | codocia (docs.rs) | docs drift checker FOR agents: `covers` patterns + snapshot hashes; "docs are source of truth" | patterns/checker idea adopted conceptually; tool itself overkill now |
 | GitLab technical-writing/markdown-link-check | lychee-powered CI component, `--offline --include-fragments` | corroborates schedule-based link checking |
 | CodeSigils skill-catalogue / Addy Osmani agent-skills / GitHub Docs | no catalogue entry yet covered Markdown fragments; the local `agent-skills` validator checks GitHub-style heading slugs and duplicate suffixes; GitHub documents the same lowercasing, punctuation removal, spacing, and duplicate-heading rules | extend the stdlib docs validator with GitHub-compatible fragment checks and regression tests; retain no additional dependency |
@@ -127,12 +127,20 @@ rather than outdatedness itself."*
 
 ## 4. CodeSigils org conventions (evidence-based)
 
-Inspected active repos (repo-health-scan, repo-architecture-skill, zensical-skill,
-python-project-workflow-skill): AGENTS.md + SECURITY.md + LICENSE + pyproject + uv.lock +
-docs/ minimums; `.githooks/` pre-commit everywhere (pre-push in heavier repos);
-`scripts/verify-urls.py` in 3 of 4; a `validate*.py` contract + CI in every repo; roadmap kept
-as a guarded root markdown file; check-the-checker tests (`test-validate-ci.py`); commit
-convention guards at hook level.
+Comparable repositories use different documentation and validation stacks. Their
+implementation details are historical comparison evidence, not a shared baseline for this
+repository; verify each repository's current controls locally before relying on them.
+
+Workflow linting (2026-11-22): CI downloads actionlint v1.7.12 from its
+upstream release and verifies the published Linux AMD64 SHA-256 before running
+it. This adds static validation for workflow-specific syntax, expressions,
+action inputs, shell snippets, and script-injection patterns that the existing
+workflow-to-script map and hook shellcheck do not cover. The binary version and
+checksum are intentionally explicit because third-party Actions dependencies
+are SHA-pinned elsewhere in this repository. Sources: actionlint's
+[checks documentation](https://github.com/rhysd/actionlint/blob/main/docs/checks.md),
+[usage documentation](https://github.com/rhysd/actionlint/blob/main/docs/usage.md),
+and [v1.7.12 release](https://github.com/rhysd/actionlint/releases/tag/v1.7.12).
 
 Dependency-update practice (2026-10-09): four of five inspected repos carry
 a GitHub-native `.github/dependabot.yml` (repo-health-scan,

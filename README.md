@@ -1,6 +1,6 @@
 # ai-repo-sanitize
 
-> Last reviewed: 2026-11-09
+> Last reviewed: 2026-11-22
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![CI](https://github.com/CodeSigils/ai-repo-sanitize/actions/workflows/ci.yml/badge.svg)](https://github.com/CodeSigils/ai-repo-sanitize/actions/workflows/ci.yml)
@@ -286,8 +286,7 @@ The [documentation index](docs/README.md) is the navigation owner: it maps each 
 | [MAINTENANCE.md](MAINTENANCE.md) | Daily operations and the rewrite-flow summary |
 | SECURITY.md | Vulnerability reporting and the matching trade-off |
 | RESEARCH.md | Sources and design decisions; update when behavior changes |
-| ROADMAP.md | Milestones; each references the anti-drift check keeping it honest |
-| ANTIDRIFT.md | The layered anti-drift strategy; update when a layer changes |
+| ROADMAP.md | Milestones, completed evidence, and queued decisions |
 | AGENTS.md | First-stop instructions for agents (and humans) in this repo |
 
 ## See also

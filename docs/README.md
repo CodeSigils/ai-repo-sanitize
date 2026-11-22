@@ -1,6 +1,6 @@
 # Documentation
 
-> Last reviewed: 2026-11-07
+> Last reviewed: 2026-11-22
 
 This index maps the documentation to the [Diátaxis](https://diataxis.fr/) framework to help both humans and agents find what they need quickly.
 
@@ -35,7 +35,6 @@ This index maps the documentation to the [Diátaxis](https://diataxis.fr/) frame
 ## Understand (Explanation)
 *Understanding-oriented — why things are the way they are.*
 
-- [Anti-Drift Strategy](../ANTIDRIFT.md) — Why guardrails exist and how drift is prevented.
 - [Research](../RESEARCH.md) — Decisions, evidence, and historical findings.
 
 ## Project state (outside Diátaxis)
