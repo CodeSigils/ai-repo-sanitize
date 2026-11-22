@@ -53,10 +53,10 @@ or docs, run the [canonical validation gate](CONTRIBUTING.md#canonical-validatio
   documented backticked repo path (src/, scripts/, tests/, .githooks/,
   .github/, pyproject.toml, uv.lock) does not exist. Run it with the gate —
   it is the codocia-class half that works inside the editing loop.
-- Read `reports/` before repeating external-repository verification. Follow
-  the read-only temporary-clone procedure in `MAINTENANCE.md`; record each
+- Read [`reports/`](reports/) before repeating external-repository verification. Follow
+  the read-only temporary-clone procedure in [MAINTENANCE.md](MAINTENANCE.md#read-only-external-repository-verification); record each
   observation as a dated report with a recommendation, link it from
-  `RESEARCH.md`, and never run rewrite or push commands during evidence
+  [RESEARCH.md](RESEARCH.md), and never run rewrite or push commands during evidence
   collection. Prefer `check`/`preview --format json` as raw evidence for an
   automated report, but keep the reviewed Markdown report as the durable
   decision record.
