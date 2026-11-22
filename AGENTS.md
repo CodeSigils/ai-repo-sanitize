@@ -26,55 +26,76 @@ or docs, run the [canonical validation gate](CONTRIBUTING.md#canonical-validatio
 
 ## Guardrails for agents
 
-- Docs and code must never drift apart: `scripts/validate-docs.py` enforces
-  that README/CONTRIBUTING list every canonical command and that internal
-  links and heading fragments resolve. Run it whenever you touch docs.
-- Do not add AI-attribution trailers (`Co-authored-by:` / "X with" branding)
-  to commit messages; the local hook and CI reject them.
-- Commit messages: lowercase conventional style (`feat:` / `docs:` / `fix:`),
-  no trailer attribution. Implementation/configuration prefixes (`feat:`,
-  `fix:`, `perf:`, `refactor:`, `build:`, `ci:`, `chore:`) require non-empty
-  `what:` and `why:` paragraphs; CI validates the introduced commit range.
-- External URLs in docs are checked weekly by CI (`scripts/verify-urls.py`).
-- Pattern changes (the attribution regexes) must update `tests/test_patterns.py`
-  in the same change - the pattern set is the contract of this tool.
-- Read `.github/workflows/ci.yml` before changing behavior: it is the
-  executable picture of what this repo validates. The docs mirror it, and
-  `scripts/validate-docs.py` enforces the agreement between them.
-- For a workflow change, also read the [CI workflow-to-script map](docs/reference/ci-workflow-map.md).
-  It is a discoverability aid with a parity check; workflow YAML remains the
-  source of truth for triggers, permissions, conditions, and runner behavior.
-- Inspect the remote CI state before and after pushing (`gh run list` or the
-  Actions page). A run can fail with "workflow file issue" and *zero jobs*,
-  leaving no logs — the local gate alone does not prove CI is green. See
-  `RESEARCH.md` §2 for the detection pattern.
+Use these guardrails as pre-flight checks. If a guardrail cannot be satisfied,
+stop, report the blocker and evidence, and do not bypass hooks, checks, or
+review gates.
 
-- Agent-side claims check: `scripts/check-doc-claims.py` fails when a
-  documented backticked repo path (src/, scripts/, tests/, .githooks/,
-  .github/, pyproject.toml, uv.lock) does not exist. Run it with the gate —
-  it is the codocia-class half that works inside the editing loop.
-- Read [`reports/`](reports/) before repeating external-repository verification. Follow
-  the read-only temporary-clone procedure in [MAINTENANCE.md](MAINTENANCE.md#read-only-external-repository-verification); record each
-  observation as a dated report with a recommendation, link it from
-  [RESEARCH.md](RESEARCH.md), and never run rewrite or push commands during evidence
-  collection. Prefer `check`/`preview --format json` as raw evidence for an
-  automated report, but keep the reviewed Markdown report as the durable
-  decision record.
-- Base recommendations on primary official documentation and recorded
-  empirical findings. When either conflicts with an inference, preference, or
-  speculation, the documented evidence takes priority; identify any remaining
-  uncertainty instead of presenting it as a conclusion.
-- Record external research that supports a decision. When a web search,
-  official documentation, or another external source informs a decision or
-  recommendation, add the finding and its source URL to `RESEARCH.md` in the
-  same change. Until the source is recorded the recommendation is not
-  evidence-based; keep the `RESEARCH.md` reference list current.
-- Reconcile `ROADMAP.md` before declaring completion. Re-read its queued
-  sections and move any item whose evidence already exists (a landed change, a
-  `reports/` entry, or a `RESEARCH.md` finding) into the completed list in the
-  same change; never leave finished work listed as future. The dated
-  `Last reviewed:` header is only a freshness proxy and cannot detect a stale
-  queued item, so this reconciliation is manual.
+### Docs and drift
+
+- **Docs/code contract:** [`scripts/validate-docs.py`](scripts/validate-docs.py)
+  enforces required docs, canonical command parity, and internal link/heading
+  fragment resolution. Run it whenever you touch docs; completion signal: it
+  reports `validate-docs: PASS - docs and gates agree`.
+- **Repo-path claims:** [`scripts/check-doc-claims.py`](scripts/check-doc-claims.py)
+  fails when a documented backticked repo path (`src/`, `scripts/`, `tests/`,
+  `.githooks/`, `.github/`, `pyproject.toml`, `uv.lock`) does not exist. Run it
+  with the gate; completion signal: it exits 0 with no missing-path findings.
+- **External URLs:** [`scripts/verify-urls.py`](scripts/verify-urls.py) is the
+  weekly/manual URL audit used by CI; for doc URL changes, prefer verifying the
+  affected links before handoff.
+- **Source of truth:** Read [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
+  before changing behavior. For workflow changes, also read the
+  [CI workflow-to-script map](docs/reference/ci-workflow-map.md); it is a
+  discoverability/parity aid, while workflow YAML remains authoritative for
+  triggers, permissions, conditions, and runner behavior.
+
+### Commits and attribution
+
+- **No AI attribution:** Do not add AI-attribution trailers (`Co-authored-by:`
+  / "X with" branding) to commit messages. The local
+  [`.githooks/commit-msg`](.githooks/commit-msg) hook and CI reject them via
+  [`scripts/check-commit-messages.py`](scripts/check-commit-messages.py). Stop
+  and rewrite the message; never use `--no-verify` to bypass the check.
+- **Commit format:** Use lowercase conventional subjects (`feat:` / `docs:` /
+  `fix:`). Implementation/configuration prefixes (`feat:`, `fix:`, `perf:`,
+  `refactor:`, `build:`, `ci:`, `chore:`) require non-empty `what:` and `why:`
+  paragraphs; CI validates the introduced commit range.
+- **Pattern contract:** Attribution-regex changes in
+  `src/ai_repo_sanitize/patterns.py` must update
+  [`tests/test_patterns.py`](tests/test_patterns.py) in the same change; the
+  pattern set is the tool contract.
+
+### Evidence and CI
+
+- **Remote CI is evidence:** Inspect remote CI state before and after pushing
+  (`gh run list` or the Actions page). A run can fail with "workflow file issue"
+  and *zero jobs*, leaving no logs; stop and treat the local gate as insufficient
+  until the remote run is green or the workflow issue is diagnosed. See
+  [RESEARCH.md §2](RESEARCH.md#2-git-and-ci-mechanics-empirically-verified).
+- **External verification:** Before repeating external-repository verification,
+  read [`reports/`](reports/) and follow the read-only temporary-clone procedure
+  in [MAINTENANCE.md](MAINTENANCE.md#read-only-external-repository-verification).
+  Record each observation as a dated report with a recommendation, link it from
+  [RESEARCH.md](RESEARCH.md), and never run rewrite or push commands during
+  evidence collection. Prefer `check`/`preview --format json` as raw evidence,
+  but keep the reviewed Markdown report as the durable decision record.
+- **Primary evidence first:** Base recommendations on primary official
+  documentation and recorded empirical findings. When evidence conflicts with
+  inference, preference, or speculation, prioritize documented evidence and
+  report remaining uncertainty explicitly.
+- **Record research:** When web search, official documentation, or another
+  external source informs a decision, add the finding and source URL to
+  [RESEARCH.md](RESEARCH.md) in the same change. Completion signal: the
+  recommendation cites a recorded source, not memory.
+
+### Roadmap and completion
+
+- **Roadmap reconciliation:** Before declaring completion, re-read
+  [ROADMAP.md](ROADMAP.md) queued sections and move any item whose evidence
+  already exists (landed change, [`reports/`](reports/) entry, or
+  [RESEARCH.md](RESEARCH.md) finding) into the completed list in the same
+  change. Do not leave finished work queued; `Last reviewed:` is only a
+  freshness proxy.
 
 ## Git and PR hygiene
 
