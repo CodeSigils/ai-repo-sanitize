@@ -175,13 +175,13 @@ breaks.
   Do not adopt a blanket line-coverage target: a percentage cannot prove the
   backup, unchanged-tree, residual-scan, or explicit-push guarantees.
 - **Branch ruleset baseline** — completed 2026-11-06: `protect-master`
-  requires a pull request, an up-to-date branch, `quality`, all five
-  `python-compat` checks, and `Exercise one-step downstream check`; deletion,
-  force-pushes, and bypasses remain blocked. Default CodeQL scans Python and
-  GitHub Actions independently as an alerting control, so stale advanced-setup
-  check names are not required status checks. Approval remains optional for
-  the sole-maintainer policy; revisit it only if a second maintainer becomes
-  available.
+  requires a pull request, an up-to-date branch, `actionlint`, `quality`, all
+  five `python-compat` checks, and `Exercise one-step downstream check`;
+  deletion, force-pushes, and bypasses remain blocked. Default CodeQL scans
+  Python and GitHub Actions independently as an alerting control, so stale
+  advanced-setup check names are not required status checks. Approval remains
+  optional for the sole-maintainer policy; revisit it only if a second
+  maintainer becomes available.
 - **PR-hygiene expansion review** — after 30 days of scheduled evidence,
   decide whether stale remote branches add actionable signal. Do not add a
   write scope, comments, or auto-merge unless the recorded failures show that
