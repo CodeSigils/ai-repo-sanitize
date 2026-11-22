@@ -1,11 +1,10 @@
 # Maintenance
 
-> Last reviewed: 2026-11-07
+> Last reviewed: 2026-11-22
 
 Operational guide for maintainers of `ai-repo-sanitize`. For contribution
 workflow see [CONTRIBUTING.md](CONTRIBUTING.md); for security matters see
-[SECURITY.md](SECURITY.md); for the anti-drift strategy see
-[ANTIDRIFT.md](ANTIDRIFT.md).
+[SECURITY.md](SECURITY.md).
 
 ## Operational sources of truth
 
@@ -197,6 +196,9 @@ the scheduled audit: ubuntu-latest migrates to Ubuntu 26 on 2026-10-19; the
 `${{ vars.RUNNER_X86_64 || 'ubuntu-latest' }}` pin is the escape hatch if that
 breaks anything.
 
+- **actionlint** — downloads the SHA-256-verified upstream binary and checks
+  GitHub Actions workflow syntax, expressions, action inputs, shell snippets,
+  and security-sensitive workflow patterns before GitHub executes them.
 - **quality** — `uv sync --locked`, shellcheck the hooks, then the
   canonical gate: `ruff check .`, `ty check`, `pytest`, `validate-docs.py`;
   it checks each newly introduced commit for attribution trailers and required

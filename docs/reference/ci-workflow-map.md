@@ -1,6 +1,6 @@
 # CI workflow-to-script map
 
-> Last reviewed: 2026-11-08
+> Last reviewed: 2026-11-22
 
 This reference makes the local script wiring in GitHub Actions discoverable to
 humans and navigation tools. The workflow YAML remains authoritative for
@@ -24,7 +24,7 @@ that answers it. No summary below overrides the source it points to.
 | What CI actually does | [`.github/workflows/`](../../.github/workflows/) | Executable source; authoritative wherever this page or the README describes workflow behavior |
 | Which script a workflow runs | this page | Navigation layer; completeness is limited to what the parity check can verify |
 | Why the wiring is YAML-first and what Graphify can see | [`RESEARCH.md` §5 decision 11](../../RESEARCH.md#5-design-decisions) | Dated decision record with pinned sources |
-| What drift the controls cannot detect | [`ANTIDRIFT.md`](../../ANTIDRIFT.md) | Explanation of the guard stack and its limits |
+| What the docs contract enforces | [`scripts/validate-docs.py`](../../scripts/validate-docs.py) | Executable source for the required-doc, command, link, freshness, and workflow-map checks |
 | What policy governs `master` | [`ROADMAP.md`](../../ROADMAP.md) completed baseline and the live GitHub ruleset | Adopted intent in the roadmap; the live ruleset wins |
 
 - **Reusable mechanism:** YAML stays authoritative, a curated workflow-to-script
@@ -42,9 +42,9 @@ that answers it. No summary below overrides the source it points to.
   replaces an older claim on this page; correct the page in that change instead
   of keeping both.
 - **Routing failure avoided:** an agent no longer has to read `AGENTS.md`,
-  `ANTIDRIFT.md`, `RESEARCH.md`, `ROADMAP.md`, and this page in an arbitrary
-  order and guess which statement is current. This order names the owner and
-  the re-check trigger for each fact without repeating the facts themselves.
+  `RESEARCH.md`, `ROADMAP.md`, and this page in an arbitrary order and guess
+  which statement is current. This order names the owner and the re-check
+  trigger for each fact without repeating the facts themselves.
 
 ## Validation and release workflows
 

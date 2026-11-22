@@ -1,19 +1,17 @@
 # Roadmap
 
-> Living document. Guarded by [ANTIDRIFT.md](ANTIDRIFT.md): every milestone
-> below names the anti-drift check that keeps it honest, and the
-> code-changes rule applies — a behavior change to `patterns.py`, `cli.py`,
-> or the canonical command set must update this file, `RESEARCH.md`, and
-> `ANTIDRIFT.md` in the same commit.
+> Living document. Keep completed evidence and queued decisions current when
+> relevant behavior or validation contracts change. CI's documentation-coverage
+> check is advisory: it warns when code changes have no accompanying Markdown
+> change, but maintainers decide which documentation needs revision.
 >
-> Last reviewed: 2026-11-07 (owner: @CodeSigils)
+> Last reviewed: 2026-11-22 (owner: @CodeSigils)
 
 ## How to read this roadmap
 
-Each item states its **goal**, the **anti-drift check** that prevents the
-planned work from silently rotting, and a rough **landing** point. Items with
-no check attached are deliberately excluded or parked — see
-[ANTIDRIFT.md](ANTIDRIFT.md) § Non-goals.
+Each item states its **goal**, relevant evidence, and a rough **landing**
+point. Completed work identifies the verification that supports it; queued
+items remain decisions until their implementation and evidence land.
 
 ## v0.1 — core flow
 
@@ -46,18 +44,18 @@ Completed for v0.1 (2026-10-09):
   CodeSigils repos), mirroring the org shape (cff-version 1.2.0, family-names CodeSigils,
   license MIT, type software, repository-code https://github.com/CodeSigils/ai-repo-sanitize).
 
-Anti-drift check for these: they live in `tests/` and `scripts/`, which the canonical
-4-command gate runs on every push — they cannot rot silently.
+Verification for these: the canonical four-command gate runs the applicable
+tests and scripts on every push.
 
 ## v0.2 — freshness and coverage gates
 
 Completed for v0.2 (2026-10-09):
 
 - **Freshness gate** — every required doc now carries `Last reviewed: YYYY-MM-DD`
-  (headers added to README/CONTRIBUTING/MAINTENANCE/SECURITY/AGENTS.md; RESEARCH, ROADMAP
-  and ANTIDRIFT already had them). `scripts/validate-docs.py` hard-fails on missing,
+  (headers added to README/CONTRIBUTING/MAINTENANCE/SECURITY/AGENTS.md; RESEARCH and ROADMAP
+  already had them). `scripts/validate-docs.py` hard-fails on missing,
   unparseable, future, or >90-day-old reviews; `--review-window`/`--today`/`--root` flags
-  make it testable. ANTIDRIFT.md §6 rewritten from roadmap to enforced.
+  make it testable.
 - **Link extraction hardened** — `validate-docs.py` uses a destination-first
   pattern (titled and angle-bracket destinations parse cleanly) and skips
   fenced code blocks, so docs carrying such link forms or code samples cannot
@@ -68,13 +66,12 @@ Completed for v0.2 (2026-10-09):
 - **Doc-coverage WARN** — `scripts/check-doc-coverage.py` warns (never fails)
   when a code-path change ships without a matching docs change, using the
   triggering push/PR's exact before-and-after range (datadef warn-not-fail:
-  "start as warnings; hard fail invites token edits"); the warning names the
-  changed paths and points at ANTIDRIFT.md's code-changes rule.
+  "start as warnings; hard fail invites token edits").
 - **Dependency freshness** — Dependabot enabled 2026-10-09: weekly grouped uv
   + GitHub Actions updates per the org research note; PRs run the canonical
   gate; merged by maintainers; no auto-merge.
 
-| Item | Goal | Anti-drift check |
+| Item | Goal | Verification approach |
 | --- | --- | --- |
 | Optional: `evals/` + `schemas/` dirs | Org skill repos carry evals; only if we add behavior-parity evals for rewrite | Kept optional; if added, mirror the org's `validate-evals.py`-style gate |
 
@@ -89,14 +86,15 @@ Completed for v0.2 (2026-10-09):
   AGENTS.md guardrail.
 - **Standing instruction shipped (Staleguard-class)** — the "run the gate
   and fix any drift before claiming completion" rule is concrete: the
-  deterministic checker works inside the editing loop, so doc↔code drift
-  cannot survive a commit. Heavy `covers` coverage + snapshot hashing remain
-  non-goals (see Non-goals).
+  deterministic checks work inside the editing loop. They catch the defined
+  command, link, path, freshness, and workflow-map contracts; human review
+  remains responsible for semantic documentation accuracy. Heavy `covers`
+  coverage + snapshot hashing remain non-goals (see Non-goals).
 
-| Item | Goal | Anti-drift check |
+| Item | Goal | Verification approach |
 | --- | --- | --- |
-| Codocia-class `covers` coverage | Markdown docs declare which code symbols they cover; snapshot hashes of covered files; `check --base main` reports changed-code-without-docs-coverage | The checker runs in CI on the weekly schedule next to `verify-urls.py`, and its policy file is agent-readable (codocia.md pattern) |
-| Staleguard-class standing instruction | AGENTS.md gains: "after editing code or docs, run the canonical gate and fix any drift" | Already half-there via AGENTS.md's validation gate; extension makes the re-verification of `RESEARCH`/`ROADMAP`/`ANTIDRIFT` mandatory |
+| Codocia-class `covers` coverage | Markdown docs declare which code symbols they cover; snapshot hashes of covered files; `check --base main` reports changed-code-without-docs-coverage | If adopted, run the checker in CI and keep its policy file agent-readable (codocia.md pattern) |
+| Staleguard-class standing instruction | AGENTS.md gains: "after editing code or docs, run the canonical gate and fix any drift" | The canonical validation gate and agent guidance already cover this; documentation coverage remains advisory |
 
 ## v0.4 — PR hygiene
 
@@ -139,8 +137,9 @@ Completed for v0.4 (2026-10-09 – 2026-10-11):
   test, and surfaced the scan-scope defect that the all-ref change resolved.
   Recorded in `RESEARCH.md` §7.
 
-Anti-drift check: the checker lives under `scripts/`, its behavior is locked in
-`tests/test_check_pr_hygiene.py`, and the workflow is actionlint-validated.
+Verification: the checker lives under `scripts/`, its behavior is locked in
+`tests/test_check_pr_hygiene.py`, and the workflow's read-only permissions and
+schedule are defined in `.github/workflows/pr-hygiene.yml`.
 
 ## v0.5 — downstream consumption
 
@@ -156,7 +155,7 @@ Completed for v0.5 (2026-10-11):
   composite action remains deferred unless repeated downstream use shows that
   the plain source-pinned step is inadequate. Recorded in `RESEARCH.md` §7.
 
-Anti-drift check: the downstream-check workflow is the check — it runs the
+Verification: the downstream-check workflow runs the
 documented one-step command on every push and fails if the exit-code contract
 breaks.
 
@@ -206,17 +205,16 @@ breaks.
 
 ## Non-goals
 
-From [ANTIDRIFT.md](ANTIDRIFT.md) § Non-goals, restated so nobody re-proposes
-them: no Vale prose linting, no static site generator, no MCP servers or
+No Vale prose linting, static site generator, MCP servers, or
 semantic/ML drift layers, no external link-checker binaries (stdlib
 `verify-urls.py` suffices).
 
 ## How to update this file
 
-1. Behavior changes to `patterns.py`, `cli.py`, or the canonical commands:
-   update `RESEARCH.md` (mechanics/decisions), `ANTIDRIFT.md` (layers that
-   defend it), and this file in the **same commit** — the CI doc-coverage
-   warning exists to catch missing updates.
+1. When a behavior or validation-contract change makes a roadmap claim stale,
+   update this file and any relevant evidence in `RESEARCH.md` in the same
+   change. The CI documentation-coverage warning is advisory and does not
+   determine which documents require revision.
 2. Bump `Last reviewed:` on any substantive edit; the v0.2 freshness gate
    will make that a hard requirement.
 3. Run `uv run python scripts/validate-docs.py` before finishing any docs

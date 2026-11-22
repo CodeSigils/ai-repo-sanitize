@@ -139,10 +139,10 @@ class FindingsTest(ValidatorFixture):
         )
 
     def test_missing_required_doc_fails(self) -> None:
-        self._write_docs(missing={"ANTIDRIFT.md"})
+        self._write_docs(missing={"ROADMAP.md"})
         problems = self.run_findings(today=date.today())
         self.assertTrue(
-            any("missing required docs" in p and "ANTIDRIFT.md" in p for p in problems),
+            any("missing required docs" in p and "ROADMAP.md" in p for p in problems),
             problems,
         )
 

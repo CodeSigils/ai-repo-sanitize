@@ -46,7 +46,6 @@ REQUIRED_DOCS: tuple[str, ...] = (
     "MAINTENANCE.md",
     "RESEARCH.md",
     "ROADMAP.md",
-    "ANTIDRIFT.md",
     "AGENTS.md",
     "docs/README.md",
     "docs/reference/ci-workflow-map.md",
